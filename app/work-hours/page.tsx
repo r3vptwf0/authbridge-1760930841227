@@ -251,25 +251,28 @@ export default function WorkHoursPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-white p-4 md:p-8">
       <div className="max-w-6xl mx-auto space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-4xl font-bold">Work Hours</h1>
+        <div className="flex justify-between items-center pb-4 border-b border-gray-200">
+          <div>
+            <h1 className="text-4xl md:text-5xl font-light tracking-tight text-gray-900">Work Hours</h1>
+            <p className="text-gray-500 mt-2 font-light">Track your working time</p>
+          </div>
           <div className="flex gap-2">
-            <Button onClick={exportToExcel} variant="outline">
+            <Button onClick={exportToExcel} variant="outline" className="border-gray-300 hover:bg-gray-100">
               <Download className="mr-2 h-4 w-4" />
-              Export to Excel
+              Export
             </Button>
-            <Button onClick={() => router.push('/dashboard')} variant="outline">
-              Back to Dashboard
+            <Button onClick={() => router.push('/dashboard')} variant="outline" className="border-gray-300 hover:bg-gray-100">
+              Dashboard
             </Button>
           </div>
         </div>
 
         {activeSession && (
-          <Card className="border-green-200 bg-green-50">
+          <Card className="border-none shadow-md bg-white border-l-4 border-l-gray-900">
             <CardHeader>
-              <CardTitle className="flex items-center text-green-700">
+              <CardTitle className="flex items-center text-gray-900 font-light">
                 <Clock className="mr-2 h-5 w-5 animate-pulse" />
                 Active Session
               </CardTitle>
@@ -277,12 +280,12 @@ export default function WorkHoursPage() {
             <CardContent>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Started at</p>
-                  <p className="text-2xl font-bold">{new Date(activeSession.clock_in).toLocaleTimeString()}</p>
-                  <p className="text-sm text-gray-600 mt-2">Duration</p>
-                  <p className="text-3xl font-bold text-green-600">{getActiveDuration()}</p>
+                  <p className="text-sm text-gray-400 font-light uppercase tracking-wider">Started at</p>
+                  <p className="text-2xl font-light text-gray-900">{new Date(activeSession.clock_in).toLocaleTimeString()}</p>
+                  <p className="text-sm text-gray-400 font-light uppercase tracking-wider mt-2">Duration</p>
+                  <p className="text-3xl font-light text-gray-900">{getActiveDuration()}</p>
                 </div>
-                <Button onClick={handleClockOut} size="lg" className="bg-red-600 hover:bg-red-700">
+                <Button onClick={handleClockOut} size="lg" className="bg-gray-900 hover:bg-gray-800 text-white">
                   <LogOut className="mr-2 h-5 w-5" />
                   Clock Out
                 </Button>
@@ -292,14 +295,14 @@ export default function WorkHoursPage() {
         )}
 
         {!activeSession && (
-          <Card>
+          <Card className="border-none shadow-sm bg-white">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-2xl font-bold">Ready to start work?</h3>
-                  <p className="text-gray-600 mt-1">Clock in to track your hours</p>
+                  <h3 className="text-2xl font-light text-gray-900">Ready to start work?</h3>
+                  <p className="text-gray-500 mt-1 font-light">Clock in to track your hours</p>
                 </div>
-                <Button onClick={handleClockIn} size="lg" className="bg-green-600 hover:bg-green-700">
+                <Button onClick={handleClockIn} size="lg" className="bg-gray-900 hover:bg-gray-800 text-white">
                   <LogIn className="mr-2 h-5 w-5" />
                   Clock In
                 </Button>
@@ -308,42 +311,48 @@ export default function WorkHoursPage() {
           </Card>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="border-none shadow-sm hover:shadow-md transition-all bg-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Today</CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-xs font-light text-gray-500 uppercase tracking-wider">Today</CardTitle>
+              <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center">
+                <Calendar className="h-4 w-4 text-gray-700" />
+              </div>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold">{formatTotalHours(totalHoursToday)}</p>
+              <p className="text-2xl font-light text-gray-900">{formatTotalHours(totalHoursToday)}</p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-none shadow-sm hover:shadow-md transition-all bg-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">This Week</CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-xs font-light text-gray-500 uppercase tracking-wider">This Week</CardTitle>
+              <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center">
+                <Calendar className="h-4 w-4 text-gray-700" />
+              </div>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold">{formatTotalHours(totalHoursWeek)}</p>
+              <p className="text-2xl font-light text-gray-900">{formatTotalHours(totalHoursWeek)}</p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-none shadow-sm hover:shadow-md transition-all bg-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Sessions</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-xs font-light text-gray-500 uppercase tracking-wider">Total Sessions</CardTitle>
+              <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center">
+                <Clock className="h-4 w-4 text-gray-700" />
+              </div>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold">{workHours.length}</p>
+              <p className="text-2xl font-light text-gray-900">{workHours.length}</p>
             </CardContent>
           </Card>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Work History</CardTitle>
-            <CardDescription>Your clocked hours</CardDescription>
+        <Card className="border-none shadow-sm bg-white">
+          <CardHeader className="border-b border-gray-100">
+            <CardTitle className="text-2xl font-light text-gray-900">Work History</CardTitle>
+            <CardDescription className="font-light">Your clocked hours</CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
@@ -360,28 +369,30 @@ export default function WorkHoursPage() {
               <TableBody>
                 {workHours.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center text-gray-500">
+                    <TableCell colSpan={6} className="text-center text-gray-400 py-8 font-light">
                       No work hours recorded yet
                     </TableCell>
                   </TableRow>
                 ) : (
                   workHours.map((work) => (
-                    <TableRow key={work.id}>
-                      <TableCell>{new Date(work.clock_in).toLocaleDateString()}</TableCell>
-                      <TableCell>{new Date(work.clock_in).toLocaleTimeString()}</TableCell>
+                    <TableRow key={work.id} className="hover:bg-gray-50">
+                      <TableCell className="font-light text-gray-600">{new Date(work.clock_in).toLocaleDateString()}</TableCell>
+                      <TableCell className="font-light text-gray-900">{new Date(work.clock_in).toLocaleTimeString()}</TableCell>
                       <TableCell>
-                        {work.clock_out ? new Date(work.clock_out).toLocaleTimeString() : (
-                          <Badge variant="default" className="bg-green-600">Active</Badge>
+                        {work.clock_out ? (
+                          <span className="font-light text-gray-900">{new Date(work.clock_out).toLocaleTimeString()}</span>
+                        ) : (
+                          <Badge variant="default" className="bg-gray-900 font-light">Active</Badge>
                         )}
                       </TableCell>
-                      <TableCell className="font-semibold">{calculateDuration(work.clock_in, work.clock_out)}</TableCell>
-                      <TableCell>{work.notes || '-'}</TableCell>
+                      <TableCell className="font-light text-gray-900">{calculateDuration(work.clock_in, work.clock_out)}</TableCell>
+                      <TableCell className="font-light text-gray-600">{work.notes || '-'}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          <Button variant="ghost" size="icon" onClick={() => openEditDialog(work)} title="Edit">
+                          <Button variant="ghost" size="icon" onClick={() => openEditDialog(work)} title="Edit" className="hover:bg-gray-100">
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" onClick={() => handleDeleteWork(work.id)} title="Delete">
+                          <Button variant="ghost" size="icon" onClick={() => handleDeleteWork(work.id)} title="Delete" className="hover:bg-gray-100">
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>

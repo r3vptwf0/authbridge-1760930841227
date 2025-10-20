@@ -204,25 +204,28 @@ export default function CalendarPage() {
   const completedTasks = tasks.filter(task => task.completed)
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-white p-4 md:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-4xl font-bold">Calendar & Tasks</h1>
-          <Button onClick={() => router.push('/dashboard')} variant="outline">
-            Back to Dashboard
+        <div className="flex justify-between items-center pb-4 border-b border-gray-200">
+          <div>
+            <h1 className="text-4xl md:text-5xl font-light tracking-tight text-gray-900">Calendar & Tasks</h1>
+            <p className="text-gray-500 mt-2 font-light">Manage your schedule and tasks</p>
+          </div>
+          <Button onClick={() => router.push('/dashboard')} variant="outline" className="border-gray-300 hover:bg-gray-100">
+            Dashboard
           </Button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
+            <Card className="border-none shadow-sm bg-white">
+              <CardHeader className="border-b border-gray-100">
                 <div className="flex justify-between items-center">
-                  <Button variant="outline" size="icon" onClick={previousMonth}>
+                  <Button variant="outline" size="icon" onClick={previousMonth} className="border-gray-300 hover:bg-gray-100">
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
-                  <CardTitle>{monthName}</CardTitle>
-                  <Button variant="outline" size="icon" onClick={nextMonth}>
+                  <CardTitle className="text-2xl font-light text-gray-900">{monthName}</CardTitle>
+                  <Button variant="outline" size="icon" onClick={nextMonth} className="border-gray-300 hover:bg-gray-100">
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>
@@ -230,7 +233,7 @@ export default function CalendarPage() {
               <CardContent>
                 <div className="grid grid-cols-7 gap-2 mb-2">
                   {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                    <div key={day} className="text-center font-semibold text-sm text-gray-600">
+                    <div key={day} className="text-center font-light text-sm text-gray-500 uppercase tracking-wider">
                       {day}
                     </div>
                   ))}
@@ -249,22 +252,22 @@ export default function CalendarPage() {
                       <div
                         key={day}
                         onClick={() => openEventDialog(date)}
-                        className={`aspect-square p-2 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors ${
-                          isToday ? 'bg-blue-50 border-blue-300' : 'bg-white'
+                        className={`aspect-square p-2 border rounded-lg cursor-pointer hover:border-gray-400 transition-all ${
+                          isToday ? 'bg-gray-100 border-gray-900' : 'bg-white border-gray-200'
                         }`}
                       >
-                        <div className={`text-sm font-semibold ${isToday ? 'text-blue-600' : ''}`}>
+                        <div className={`text-sm font-light ${isToday ? 'text-gray-900 font-medium' : 'text-gray-700'}`}>
                           {day}
                         </div>
                         <div className="mt-1 space-y-1">
                           {dayEvents.slice(0, 2).map(event => (
-                            <div key={event.id} className="text-xs bg-blue-100 text-blue-700 px-1 rounded truncate flex items-center gap-1">
+                            <div key={event.id} className="text-xs bg-gray-100 text-gray-700 px-1 rounded truncate flex items-center gap-1">
                               {event.is_reminder && <Bell className="h-2 w-2" />}
-                              {event.title}
+                              <span className="font-light">{event.title}</span>
                             </div>
                           ))}
                           {dayEvents.length > 2 && (
-                            <div className="text-xs text-gray-500">+{dayEvents.length - 2} more</div>
+                            <div className="text-xs text-gray-400 font-light">+{dayEvents.length - 2} more</div>
                           )}
                         </div>
                       </div>
@@ -276,45 +279,46 @@ export default function CalendarPage() {
           </div>
 
           <div className="space-y-6">
-            <Card>
-              <CardHeader>
+            <Card className="border-none shadow-sm bg-white">
+              <CardHeader className="border-b border-gray-100">
                 <div className="flex justify-between items-center">
-                  <CardTitle className="flex items-center">
+                  <CardTitle className="flex items-center font-light text-gray-900">
                     <CheckSquare className="mr-2 h-5 w-5" />
                     Daily Tasks
                   </CardTitle>
-                  <Button size="sm" onClick={() => setIsTaskDialogOpen(true)}>
+                  <Button size="sm" onClick={() => setIsTaskDialogOpen(true)} className="bg-gray-900 hover:bg-gray-800 text-white">
                     <Plus className="h-4 w-4" />
                   </Button>
                 </div>
-                <CardDescription>Your to-do list</CardDescription>
+                <CardDescription className="font-light">Your to-do list</CardDescription>
               </CardHeader>
               <CardContent className="space-y-2 max-h-96 overflow-y-auto">
                 {todayTasks.length === 0 && completedTasks.length === 0 ? (
-                  <p className="text-center text-gray-500 py-4">No tasks yet</p>
+                  <p className="text-center text-gray-400 py-4 font-light">No tasks yet</p>
                 ) : (
                   <>
                     {todayTasks.map(task => (
-                      <div key={task.id} className="flex items-start gap-2 p-2 bg-gray-50 rounded-lg">
+                      <div key={task.id} className="flex items-start gap-2 p-2 border border-gray-100 rounded-lg hover:border-gray-200">
                         <Checkbox
                           checked={task.completed}
                           onCheckedChange={() => handleToggleTask(task.id, task.completed)}
                         />
                          <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            <p className="font-medium">{task.title}</p>
+                            <p className="font-light text-gray-900">{task.title}</p>
                             {task.hour && (
-                              <Badge variant="outline" className="text-xs">{task.hour}</Badge>
+                              <Badge variant="outline" className="text-xs font-light border-gray-300">{task.hour}</Badge>
                             )}
                           </div>
                           {task.description && (
-                            <p className="text-sm text-gray-600">{task.description}</p>
+                            <p className="text-sm text-gray-500 font-light">{task.description}</p>
                           )}
                         </div>
                         <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => handleDeleteTask(task.id)}
+                          className="hover:bg-gray-100"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -322,28 +326,29 @@ export default function CalendarPage() {
                     ))}
                     {completedTasks.length > 0 && (
                       <>
-                        <div className="text-sm font-semibold text-gray-500 mt-4">Completed</div>
+                        <div className="text-sm font-light text-gray-400 mt-4 uppercase tracking-wider">Completed</div>
                         {completedTasks.map(task => (
-                          <div key={task.id} className="flex items-start gap-2 p-2 bg-gray-50 rounded-lg opacity-60">
+                          <div key={task.id} className="flex items-start gap-2 p-2 border border-gray-100 rounded-lg opacity-60">
                             <Checkbox
                               checked={task.completed}
                               onCheckedChange={() => handleToggleTask(task.id, task.completed)}
                             />
                              <div className="flex-1">
                               <div className="flex items-center gap-2">
-                                <p className="font-medium line-through">{task.title}</p>
+                                <p className="font-light text-gray-900 line-through">{task.title}</p>
                                 {task.hour && (
-                                  <Badge variant="outline" className="text-xs">{task.hour}</Badge>
+                                  <Badge variant="outline" className="text-xs font-light border-gray-300">{task.hour}</Badge>
                                 )}
                               </div>
                               {task.description && (
-                                <p className="text-sm text-gray-600 line-through">{task.description}</p>
+                                <p className="text-sm text-gray-500 font-light line-through">{task.description}</p>
                               )}
                             </div>
                             <Button
                               variant="ghost"
                               size="icon"
                               onClick={() => handleDeleteTask(task.id)}
+                              className="hover:bg-gray-100"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -400,22 +405,23 @@ export default function CalendarPage() {
 
             {selectedDate && getEventsForDate(selectedDate).length > 0 && (
               <div className="mt-4 space-y-2">
-                <h4 className="font-semibold text-sm">Events on this day:</h4>
+                <h4 className="font-light text-sm text-gray-700">Events on this day:</h4>
                 {getEventsForDate(selectedDate).map(event => (
-                  <div key={event.id} className="flex items-start justify-between p-2 bg-gray-50 rounded">
+                  <div key={event.id} className="flex items-start justify-between p-2 border border-gray-100 rounded hover:border-gray-200">
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        {event.is_reminder && <Bell className="h-3 w-3 text-blue-600" />}
-                        <p className="font-medium text-sm">{event.title}</p>
+                        {event.is_reminder && <Bell className="h-3 w-3 text-gray-700" />}
+                        <p className="font-light text-sm text-gray-900">{event.title}</p>
                       </div>
                       {event.description && (
-                        <p className="text-xs text-gray-600">{event.description}</p>
+                        <p className="text-xs text-gray-500 font-light">{event.description}</p>
                       )}
                     </div>
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={() => handleDeleteEvent(event.id)}
+                      className="hover:bg-gray-100"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
