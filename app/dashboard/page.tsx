@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useRouter } from "next/navigation"
 import { getSupabaseClient } from "@/lib/supabase"
-import { Wallet, Package, TrendingUp, TrendingDown, DollarSign, ArrowRight, AlertCircle, LogOut, Plus, Activity, Clock } from "lucide-react"
+import { Wallet, Package, TrendingUp, TrendingDown, DollarSign, ArrowRight, AlertCircle, LogOut, Plus, Activity, Clock, Calendar } from "lucide-react"
 
 interface DashboardStats {
   totalIncome: number
@@ -117,7 +117,7 @@ export default function DashboardPage() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           <Button onClick={() => router.push('/wallet')} className="h-20" variant="outline">
             <Plus className="mr-2 h-5 w-5" />
             Add Income
@@ -137,6 +137,10 @@ export default function DashboardPage() {
           <Button onClick={() => router.push('/work-hours')} className="h-20" variant="outline">
             <Clock className="mr-2 h-5 w-5" />
             Work Hours
+          </Button>
+          <Button onClick={() => router.push('/calendar')} className="h-20" variant="outline">
+            <Calendar className="mr-2 h-5 w-5" />
+            Calendar
           </Button>
         </div>
 

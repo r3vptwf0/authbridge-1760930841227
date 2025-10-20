@@ -8,16 +8,18 @@ datasource db {
 }
 
 model User {
-  id        String      @id @default(uuid())
-  username  String      @unique
-  password  String
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-  expenses  Expense[]
-  incomes   Income[]
-  products  Product[]
-  debts     Debt[]
-  workHours WorkHours[]
+  id            String          @id @default(uuid())
+  username      String          @unique
+  password      String
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  expenses      Expense[]
+  incomes       Income[]
+  products      Product[]
+  debts         Debt[]
+  workHours     WorkHours[]
+  calendarEvents CalendarEvent[]
+  tasks         Task[]
 
   @@map("users")
 }
@@ -91,4 +93,32 @@ model WorkHours {
   updatedAt DateTime  @updatedAt
 
   @@map("work_hours")
+}
+
+model CalendarEvent {
+  id          String   @id @default(uuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  date        DateTime
+  isReminder  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("calendar_events")
+}
+
+model Task {
+  id          String   @id @default(uuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  date        DateTime @default(now())
+  completed   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("tasks")
 }
