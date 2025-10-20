@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
 import { getSupabaseClient } from "@/lib/supabase"
-import { Pencil, Trash2, Plus, Package } from "lucide-react"
+import { Pencil, Trash2, Plus, Package, DollarSign } from "lucide-react"
 
 interface Product {
   id: string
@@ -24,11 +24,14 @@ export default function StockPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [isSellDialogOpen, setIsSellDialogOpen] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
+  const [sellingProduct, setSellingProduct] = useState<Product | null>(null)
   const [name, setName] = useState("")
   const [stockGrams, setStockGrams] = useState("")
   const [costPerGram, setCostPerGram] = useState("")
   const [pricePerGram, setPricePerGram] = useState("")
+  const [sellQuantity, setSellQuantity] = useState("")
   const { toast } = useToast()
   const router = useRouter()
 
@@ -128,6 +131,63 @@ export default function StockPage() {
     setStockGrams("")
     setCostPerGram("")
     setPricePerGram("")
+  }
+
+  const openSellDialog = (product: Product) => {
+    setSellingProduct(product)
+    setSellQuantity("")
+    setIsSellDialogOpen(true)
+  }
+
+  const handleSellProduct = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!sellingProduct) return
+
+    const quantity = parseFloat(sellQuantity)
+    if (quantity <= 0) {
+      toast({ title: "Error", description: "Quantity must be greater than 0", variant: "destructive" })
+      return
+    }
+
+    if (quantity > sellingProduct.stock_grams) {
+      toast({ title: "Error", description: "Not enough stock to sell", variant: "destructive" })
+      return
+    }
+
+    try {
+      const supabase = getSupabaseClient()
+      
+      const newStock = sellingProduct.stock_grams - quantity
+      const saleAmount = quantity * sellingProduct.price_per_gram
+      
+      const [updateResult, incomeResult] = await Promise.all([
+        supabase.from('products').update({
+          stock_grams: newStock
+        }).eq('id', sellingProduct.id),
+        
+        supabase.from('incomes').insert({
+          description: `Sold ${quantity}g of ${sellingProduct.name}`,
+          amount: saleAmount,
+          category: 'Product Sale',
+          date: new Date().toISOString(),
+        })
+      ])
+
+      if (updateResult.error) throw updateResult.error
+      if (incomeResult.error) throw incomeResult.error
+
+      toast({ 
+        title: "Success", 
+        description: `Sold ${quantity}g for $${saleAmount.toFixed(2)}. Added to wallet as income.` 
+      })
+      
+      setSellQuantity("")
+      setSellingProduct(null)
+      setIsSellDialogOpen(false)
+      loadProducts()
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" })
+    }
   }
 
   const calculateTotalCost = (product: Product) => {
@@ -275,10 +335,13 @@ export default function StockPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          <Button variant="ghost" size="icon" onClick={() => openEditDialog(product)}>
+                          <Button variant="ghost" size="icon" onClick={() => openSellDialog(product)} title="Sell">
+                            <DollarSign className="h-4 w-4 text-green-600" />
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => openEditDialog(product)} title="Edit">
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" onClick={() => handleDeleteProduct(product.id)}>
+                          <Button variant="ghost" size="icon" onClick={() => handleDeleteProduct(product.id)} title="Delete">
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
@@ -315,6 +378,50 @@ export default function StockPage() {
                 <Input id="edit-price" type="number" step="0.01" value={pricePerGram} onChange={(e) => setPricePerGram(e.target.value)} required />
               </div>
               <Button type="submit" className="w-full">Update Product</Button>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={isSellDialogOpen} onOpenChange={setIsSellDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Sell Product</DialogTitle>
+              <DialogDescription>
+                {sellingProduct && `Sell ${sellingProduct.name} (Available: ${sellingProduct.stock_grams.toFixed(2)}g)`}
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleSellProduct} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="sell-quantity">Quantity (grams)</Label>
+                <Input 
+                  id="sell-quantity" 
+                  type="number" 
+                  step="0.01" 
+                  value={sellQuantity} 
+                  onChange={(e) => setSellQuantity(e.target.value)} 
+                  placeholder={`Max: ${sellingProduct?.stock_grams.toFixed(2)}g`}
+                  required 
+                />
+              </div>
+              {sellQuantity && sellingProduct && parseFloat(sellQuantity) > 0 && (
+                <div className="p-4 bg-gray-50 rounded-lg space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Sale Amount:</span>
+                    <span className="font-semibold">${(parseFloat(sellQuantity) * sellingProduct.price_per_gram).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Cost:</span>
+                    <span className="font-semibold text-red-600">-${(parseFloat(sellQuantity) * sellingProduct.cost_per_gram).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between border-t pt-2">
+                    <span className="text-sm font-medium">Profit:</span>
+                    <span className="font-bold text-green-600">
+                      ${(parseFloat(sellQuantity) * (sellingProduct.price_per_gram - sellingProduct.cost_per_gram)).toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              )}
+              <Button type="submit" className="w-full">Confirm Sale</Button>
             </form>
           </DialogContent>
         </Dialog>
