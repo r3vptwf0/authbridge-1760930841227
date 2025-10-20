@@ -218,16 +218,36 @@ export default function StockPage() {
       const supabase = getSupabaseClient()
       
       const newStock = consumingProduct.stock_grams - quantity
+      const costValue = quantity * consumingProduct.cost_per_gram
       
-      const { error } = await supabase.from('products').update({
-        stock_grams: newStock
-      }).eq('id', consumingProduct.id)
+      const [updateResult, consumptionResult, expenseResult] = await Promise.all([
+        supabase.from('products').update({
+          stock_grams: newStock
+        }).eq('id', consumingProduct.id),
+        
+        supabase.from('consumptions').insert({
+          product_id: consumingProduct.id,
+          product_name: consumingProduct.name,
+          quantity: quantity,
+          cost_value: costValue,
+          date: new Date().toISOString(),
+        }),
+        
+        supabase.from('expenses').insert({
+          description: `Consumed ${quantity}g of ${consumingProduct.name}`,
+          amount: costValue,
+          category: 'Personal Consumption',
+          date: new Date().toISOString(),
+        })
+      ])
 
-      if (error) throw error
+      if (updateResult.error) throw updateResult.error
+      if (consumptionResult.error) throw consumptionResult.error
+      if (expenseResult.error) throw expenseResult.error
 
       toast({ 
         title: "Success", 
-        description: `Consumed ${quantity}g of ${consumingProduct.name}. Stock updated.` 
+        description: `Consumed ${quantity}g for $${costValue.toFixed(2)}. Added to wallet as expense and saved to history.` 
       })
       
       setConsumeQuantity("")

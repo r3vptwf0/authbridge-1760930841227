@@ -76,6 +76,7 @@ model Debt {
   description String?
   dueDate     DateTime?
   status      String   @default("pending")
+  type        String   @default("to_others")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -117,8 +118,23 @@ model Task {
   description String?
   date        DateTime @default(now())
   completed   Boolean  @default(false)
+  hour        String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@map("tasks")
+}
+
+model Consumption {
+  id          String   @id @default(uuid())
+  userId      String?
+  productId   String
+  productName String
+  quantity    Float
+  costValue   Float
+  date        DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("consumptions")
 }
