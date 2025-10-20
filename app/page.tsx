@@ -35,16 +35,6 @@ export default function Home() {
             Get Started
           </Button>
         </div>
-
-        <p className="mt-6 text-sm text-gray-400 font-light">
-          Already have an account?{" "}
-          <span
-            onClick={() => router.push("/login")}
-            className="text-gray-900 hover:underline cursor-pointer font-medium"
-          >
-            Sign in here
-          </span>
-        </p>
       </div>
     </div>
   )
