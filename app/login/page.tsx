@@ -52,41 +52,44 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Login</CardTitle>
-          <CardDescription>
-            Enter your username to login to your account
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-gray-100 to-white">
+      <Card className="w-full max-w-md border-none shadow-lg bg-white">
+        <CardHeader className="space-y-1 pb-6">
+          <CardTitle className="text-3xl font-light tracking-tight text-gray-900">Login</CardTitle>
+          <CardDescription className="font-light text-gray-500">
+            Enter your credentials to access your account
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="username" className="text-sm font-light text-gray-700">Username</Label>
               <Input
                 id="username"
                 type="text"
-                placeholder="username"
+                placeholder="Enter username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
                 disabled={isLoading}
+                className="border-gray-300 focus:border-gray-900 focus:ring-gray-900"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="text-sm font-light text-gray-700">Password</Label>
               <Input
                 id="password"
                 type="password"
+                placeholder="Enter password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 disabled={isLoading}
+                className="border-gray-300 focus:border-gray-900 focus:ring-gray-900"
               />
             </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Loading..." : "Login"}
+            <Button type="submit" className="w-full bg-gray-900 hover:bg-gray-800 text-white font-light" disabled={isLoading}>
+              {isLoading ? "Logging in..." : "Login"}
             </Button>
           </form>
         </CardContent>

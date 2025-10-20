@@ -225,11 +225,11 @@ export default function DebtsPage() {
     if (filteredDebts.length === 0) {
       return (
         <div className="text-center py-16">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-4">
-            <CheckCircle2 className="h-8 w-8 text-green-600" />
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
+            <CheckCircle2 className="h-8 w-8 text-gray-700" />
           </div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">No debts recorded</h3>
-          <p className="text-gray-500">You're all clear! {type === 'to_others' ? 'You don\'t owe anyone.' : 'No one owes you.'}</p>
+          <h3 className="text-xl font-light text-gray-900 mb-2">No debts recorded</h3>
+          <p className="text-gray-400 font-light">You're all clear! {type === 'to_others' ? 'You don\'t owe anyone.' : 'No one owes you.'}</p>
         </div>
       )
     }
@@ -242,30 +242,30 @@ export default function DebtsPage() {
           const isPaid = debt.status === 'paid'
           
           return (
-            <div key={debt.id} className="group relative bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all duration-300 hover:border-gray-300">
+            <div key={debt.id} className="group relative bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-all hover:border-gray-300">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-start gap-4 flex-1">
-                  <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                  <div className="h-12 w-12 rounded-full bg-gray-900 flex items-center justify-center text-white font-light text-lg">
                     {debt.person_name.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-1">
-                      <h3 className="text-xl font-bold text-gray-900">{debt.person_name}</h3>
+                      <h3 className="text-xl font-light text-gray-900">{debt.person_name}</h3>
                       <Badge 
                         variant={isPaid ? 'default' : 'secondary'}
-                        className={isPaid ? 'bg-green-100 text-green-700 border-green-300' : 'bg-orange-100 text-orange-700 border-orange-300'}
+                        className={isPaid ? 'bg-gray-900 text-white border-gray-900' : 'bg-gray-100 text-gray-700 border-gray-300'}
                       >
                         {isPaid ? '✓ Paid' : 'Pending'}
                       </Badge>
                     </div>
                     {debt.description && (
-                      <p className="text-gray-600 text-sm mb-2">{debt.description}</p>
+                      <p className="text-gray-500 text-sm mb-2 font-light">{debt.description}</p>
                     )}
-                    <div className="flex items-center gap-4 text-sm text-gray-500">
+                    <div className="flex items-center gap-4 text-sm text-gray-400">
                       {debt.due_date && (
                         <div className="flex items-center gap-1">
                           <Calendar className="h-4 w-4" />
-                          <span>Due: {new Date(debt.due_date).toLocaleDateString()}</span>
+                          <span className="font-light">Due: {new Date(debt.due_date).toLocaleDateString()}</span>
                         </div>
                       )}
                     </div>
@@ -277,16 +277,16 @@ export default function DebtsPage() {
                       variant="outline" 
                       size="sm" 
                       onClick={() => openPayDialog(debt)}
-                      className="bg-green-50 hover:bg-green-100 border-green-300 text-green-700"
+                      className="bg-gray-900 hover:bg-gray-800 text-white border-gray-900"
                     >
                       <DollarSign className="h-4 w-4 mr-1" />
                       Pay
                     </Button>
                   )}
-                  <Button variant="ghost" size="icon" onClick={() => openEditDialog(debt)}>
+                  <Button variant="ghost" size="icon" onClick={() => openEditDialog(debt)} className="hover:bg-gray-100">
                     <Pencil className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={() => handleDeleteDebt(debt.id)} className="hover:bg-red-50 hover:text-red-600">
+                  <Button variant="ghost" size="icon" onClick={() => handleDeleteDebt(debt.id)} className="hover:bg-gray-100">
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
@@ -294,27 +294,27 @@ export default function DebtsPage() {
 
               <div className="grid grid-cols-3 gap-4 mb-3">
                 <div>
-                  <p className="text-xs text-gray-500 mb-1">Total Amount</p>
-                  <p className="text-lg font-bold text-gray-900">${debt.amount.toFixed(2)}</p>
+                  <p className="text-xs text-gray-400 mb-1 font-light uppercase tracking-wider">Total Amount</p>
+                  <p className="text-lg font-light text-gray-900">${debt.amount.toFixed(2)}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 mb-1">Paid</p>
-                  <p className="text-lg font-bold text-green-600">${debt.amount_paid.toFixed(2)}</p>
+                  <p className="text-xs text-gray-400 mb-1 font-light uppercase tracking-wider">Paid</p>
+                  <p className="text-lg font-light text-gray-900">${debt.amount_paid.toFixed(2)}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 mb-1">Remaining</p>
-                  <p className="text-lg font-bold text-orange-600">${remaining.toFixed(2)}</p>
+                  <p className="text-xs text-gray-400 mb-1 font-light uppercase tracking-wider">Remaining</p>
+                  <p className="text-lg font-light text-gray-900">${remaining.toFixed(2)}</p>
                 </div>
               </div>
 
               <div className="space-y-2">
                 <div className="flex justify-between items-center text-xs">
-                  <span className="text-gray-500">Progress</span>
-                  <span className="font-semibold text-gray-700">{progress.toFixed(0)}%</span>
+                  <span className="text-gray-400 font-light uppercase tracking-wider">Progress</span>
+                  <span className="font-light text-gray-700">{progress.toFixed(0)}%</span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
                   <div 
-                    className="h-full bg-gradient-to-r from-green-500 to-emerald-600 rounded-full transition-all duration-500"
+                    className="h-full bg-gray-900 rounded-full transition-all duration-500"
                     style={{ width: `${progress}%` }}
                   />
                 </div>
@@ -327,28 +327,28 @@ export default function DebtsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-gray-50 p-4 md:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-white p-4 md:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 pb-4 border-b border-gray-200">
           <div>
-            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Debt Management</h1>
-            <p className="text-gray-600 mt-2">Track and manage your financial obligations</p>
+            <h1 className="text-4xl md:text-5xl font-light tracking-tight text-gray-900">Debt Management</h1>
+            <p className="text-gray-500 mt-2 font-light">Track and manage your financial obligations</p>
           </div>
-          <Button onClick={() => router.push('/dashboard')} variant="outline" className="w-fit">
+          <Button onClick={() => router.push('/dashboard')} variant="outline" className="w-fit border-gray-300 hover:bg-gray-100">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Dashboard
           </Button>
         </div>
 
         <Tabs defaultValue="to_others" className="space-y-6" onValueChange={(v) => setActiveTab(v as 'to_me' | 'to_others')}>
-          <TabsList className="grid w-full max-w-md grid-cols-2 h-12 bg-white shadow-sm">
-            <TabsTrigger value="to_others" className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500 data-[state=active]:to-orange-500 data-[state=active]:text-white">
+          <TabsList className="grid w-full max-w-md grid-cols-2 h-12 bg-white border border-gray-200">
+            <TabsTrigger value="to_others" className="flex items-center gap-2 data-[state=active]:bg-gray-900 data-[state=active]:text-white font-light">
               <TrendingDown className="h-4 w-4" />
-              <span className="font-semibold">I Owe</span>
+              <span>I Owe</span>
             </TabsTrigger>
-            <TabsTrigger value="to_me" className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-500 data-[state=active]:text-white">
+            <TabsTrigger value="to_me" className="flex items-center gap-2 data-[state=active]:bg-gray-900 data-[state=active]:text-white font-light">
               <TrendingUp className="h-4 w-4" />
-              <span className="font-semibold">They Owe</span>
+              <span>They Owe</span>
             </TabsTrigger>
           </TabsList>
 
@@ -357,71 +357,71 @@ export default function DebtsPage() {
             return (
               <TabsContent key={type} value={type} className="space-y-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <Card className="border-none shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+                  <Card className="border-none shadow-sm hover:shadow-md transition-all bg-white">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium text-blue-100">Total Amount</CardTitle>
-                      <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center">
-                        <DollarSign className="h-5 w-5" />
+                      <CardTitle className="text-xs font-light text-gray-500 uppercase tracking-wider">Total Amount</CardTitle>
+                      <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center">
+                        <DollarSign className="h-4 w-4 text-gray-700" />
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-3xl font-bold">${stats.total.toFixed(2)}</p>
-                      <p className="text-xs text-blue-100 mt-1">Total {type === 'to_others' ? 'owed' : 'receivable'}</p>
+                      <p className="text-3xl font-light text-gray-900">${stats.total.toFixed(2)}</p>
+                      <p className="text-xs text-gray-400 mt-1 font-light">Total {type === 'to_others' ? 'owed' : 'receivable'}</p>
                     </CardContent>
                   </Card>
 
-                  <Card className="border-none shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-green-500 to-emerald-600 text-white">
+                  <Card className="border-none shadow-sm hover:shadow-md transition-all bg-white">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium text-green-100">Paid</CardTitle>
-                      <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center">
-                        <CheckCircle2 className="h-5 w-5" />
+                      <CardTitle className="text-xs font-light text-gray-500 uppercase tracking-wider">Paid</CardTitle>
+                      <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center">
+                        <CheckCircle2 className="h-4 w-4 text-gray-700" />
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-3xl font-bold">${stats.paid.toFixed(2)}</p>
-                      <p className="text-xs text-green-100 mt-1">{stats.total > 0 ? Math.round((stats.paid / stats.total) * 100) : 0}% completed</p>
+                      <p className="text-3xl font-light text-gray-900">${stats.paid.toFixed(2)}</p>
+                      <p className="text-xs text-gray-400 mt-1 font-light">{stats.total > 0 ? Math.round((stats.paid / stats.total) * 100) : 0}% completed</p>
                     </CardContent>
                   </Card>
 
-                  <Card className="border-none shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-orange-500 to-red-600 text-white">
+                  <Card className="border-none shadow-sm hover:shadow-md transition-all bg-white">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium text-orange-100">Remaining</CardTitle>
-                      <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center">
-                        <Clock className="h-5 w-5" />
+                      <CardTitle className="text-xs font-light text-gray-500 uppercase tracking-wider">Remaining</CardTitle>
+                      <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center">
+                        <Clock className="h-4 w-4 text-gray-700" />
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-3xl font-bold">${stats.remaining.toFixed(2)}</p>
-                      <p className="text-xs text-orange-100 mt-1">Outstanding balance</p>
+                      <p className="text-3xl font-light text-gray-900">${stats.remaining.toFixed(2)}</p>
+                      <p className="text-xs text-gray-400 mt-1 font-light">Outstanding balance</p>
                     </CardContent>
                   </Card>
 
-                  <Card className="border-none shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-purple-500 to-indigo-600 text-white">
+                  <Card className="border-none shadow-sm hover:shadow-md transition-all bg-white">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium text-purple-100">Pending</CardTitle>
-                      <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center">
-                        <span className="text-xl font-bold">{stats.pending}</span>
+                      <CardTitle className="text-xs font-light text-gray-500 uppercase tracking-wider">Pending</CardTitle>
+                      <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center">
+                        <span className="text-lg font-light text-gray-900">{stats.pending}</span>
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-3xl font-bold">{stats.pending}</p>
-                      <p className="text-xs text-purple-100 mt-1">Active {stats.pending === 1 ? 'debt' : 'debts'}</p>
+                      <p className="text-3xl font-light text-gray-900">{stats.pending}</p>
+                      <p className="text-xs text-gray-400 mt-1 font-light">Active {stats.pending === 1 ? 'debt' : 'debts'}</p>
                     </CardContent>
                   </Card>
                 </div>
 
-                <Card className="border-none shadow-xl">
-                  <CardHeader className="bg-gradient-to-r from-gray-50 to-white">
+                <Card className="border-none shadow-sm bg-white">
+                  <CardHeader className="border-b border-gray-100">
                     <div className="flex justify-between items-center">
                       <div>
-                        <CardTitle className="text-2xl">{type === 'to_others' ? 'Money I Owe' : 'Money Owed to Me'}</CardTitle>
-                        <CardDescription className="text-base mt-1">
+                        <CardTitle className="text-2xl font-light text-gray-900">{type === 'to_others' ? 'Money I Owe' : 'Money Owed to Me'}</CardTitle>
+                        <CardDescription className="text-base mt-1 font-light">
                           {type === 'to_others' ? 'Track debts you need to pay' : 'Track money others owe you'}
                         </CardDescription>
                       </div>
                       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                         <DialogTrigger asChild>
-                          <Button onClick={resetForm} className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg">
+                          <Button onClick={resetForm} className="bg-gray-900 hover:bg-gray-800 text-white">
                             <Plus className="mr-2 h-4 w-4" />
                             Add Debt
                           </Button>
