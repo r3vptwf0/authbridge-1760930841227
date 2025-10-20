@@ -208,66 +208,80 @@ export default function StockPage() {
   const totalGrams = products.reduce((sum, p) => sum + p.stock_grams, 0)
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-white p-4 md:p-8">
       <div className="max-w-6xl mx-auto space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-4xl font-bold">Stock Management</h1>
-          <Button onClick={() => router.push('/dashboard')} variant="outline">
+        <div className="flex justify-between items-center pb-4 border-b border-gray-200">
+          <div>
+            <h1 className="text-4xl md:text-5xl font-light tracking-tight text-gray-900">Stock Management</h1>
+            <p className="text-gray-500 mt-2 font-light">Manage your product inventory</p>
+          </div>
+          <Button onClick={() => router.push('/dashboard')} variant="outline" className="border-gray-300 hover:bg-gray-100">
             Back to Dashboard
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card className="border-none shadow-sm hover:shadow-md transition-all bg-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Stock</CardTitle>
-              <Package className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-xs font-light text-gray-500 uppercase tracking-wider">Total Stock</CardTitle>
+              <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center">
+                <Package className="h-4 w-4 text-gray-700" />
+              </div>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold">{totalGrams.toFixed(2)}g</p>
+              <p className="text-3xl font-light text-gray-900">{totalGrams.toFixed(2)}g</p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-none shadow-sm hover:shadow-md transition-all bg-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Cost</CardTitle>
+              <CardTitle className="text-xs font-light text-gray-500 uppercase tracking-wider">Total Cost</CardTitle>
+              <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center">
+                <DollarSign className="h-4 w-4 text-gray-700" />
+              </div>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-red-600">${totalCost.toFixed(2)}</p>
+              <p className="text-3xl font-light text-gray-900">${totalCost.toFixed(2)}</p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-none shadow-sm hover:shadow-md transition-all bg-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Stock Value</CardTitle>
+              <CardTitle className="text-xs font-light text-gray-500 uppercase tracking-wider">Stock Value</CardTitle>
+              <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center">
+                <DollarSign className="h-4 w-4 text-gray-700" />
+              </div>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-blue-600">${totalStockValue.toFixed(2)}</p>
+              <p className="text-3xl font-light text-gray-900">${totalStockValue.toFixed(2)}</p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-none shadow-sm hover:shadow-md transition-all bg-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Potential Profit</CardTitle>
+              <CardTitle className="text-xs font-light text-gray-500 uppercase tracking-wider">Potential Profit</CardTitle>
+              <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center">
+                <DollarSign className="h-4 w-4 text-gray-700" />
+              </div>
             </CardHeader>
             <CardContent>
-              <p className={`text-3xl font-bold ${totalProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              <p className="text-3xl font-light text-gray-900">
                 ${totalProfit.toFixed(2)}
               </p>
             </CardContent>
           </Card>
         </div>
 
-        <Card>
-          <CardHeader>
+        <Card className="border-none shadow-sm bg-white">
+          <CardHeader className="border-b border-gray-100">
             <div className="flex justify-between items-center">
               <div>
-                <CardTitle>Products</CardTitle>
-                <CardDescription>Manage your product inventory</CardDescription>
+                <CardTitle className="text-2xl font-light text-gray-900">Products</CardTitle>
+                <CardDescription className="font-light">Manage your product inventory</CardDescription>
               </div>
               <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button onClick={resetForm}>
+                  <Button onClick={resetForm} className="bg-gray-900 hover:bg-gray-800 text-white">
                     <Plus className="mr-2 h-4 w-4" />
                     Add Product
                   </Button>
@@ -317,31 +331,31 @@ export default function StockPage() {
               <TableBody>
                 {products.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center text-gray-500">
+                    <TableCell colSpan={8} className="text-center text-gray-400 py-8 font-light">
                       No products yet. Add your first product!
                     </TableCell>
                   </TableRow>
                 ) : (
                   products.map((product) => (
-                    <TableRow key={product.id}>
-                      <TableCell className="font-medium">{product.name}</TableCell>
-                      <TableCell className="text-right">{product.stock_grams.toFixed(2)}g</TableCell>
-                      <TableCell className="text-right">${product.cost_per_gram.toFixed(2)}</TableCell>
-                      <TableCell className="text-right">${product.price_per_gram.toFixed(2)}</TableCell>
-                      <TableCell className="text-right">${calculateTotalCost(product).toFixed(2)}</TableCell>
-                      <TableCell className="text-right">${calculateTotalValue(product).toFixed(2)}</TableCell>
-                      <TableCell className={`text-right font-semibold ${calculateProfit(product) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    <TableRow key={product.id} className="hover:bg-gray-50">
+                      <TableCell className="font-light text-gray-900">{product.name}</TableCell>
+                      <TableCell className="text-right font-light">{product.stock_grams.toFixed(2)}g</TableCell>
+                      <TableCell className="text-right font-light">${product.cost_per_gram.toFixed(2)}</TableCell>
+                      <TableCell className="text-right font-light">${product.price_per_gram.toFixed(2)}</TableCell>
+                      <TableCell className="text-right font-light">${calculateTotalCost(product).toFixed(2)}</TableCell>
+                      <TableCell className="text-right font-light">${calculateTotalValue(product).toFixed(2)}</TableCell>
+                      <TableCell className="text-right font-light text-gray-900">
                         ${calculateProfit(product).toFixed(2)}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          <Button variant="ghost" size="icon" onClick={() => openSellDialog(product)} title="Sell">
-                            <DollarSign className="h-4 w-4 text-green-600" />
+                          <Button variant="ghost" size="icon" onClick={() => openSellDialog(product)} title="Sell" className="hover:bg-gray-100">
+                            <DollarSign className="h-4 w-4 text-gray-700" />
                           </Button>
-                          <Button variant="ghost" size="icon" onClick={() => openEditDialog(product)} title="Edit">
+                          <Button variant="ghost" size="icon" onClick={() => openEditDialog(product)} title="Edit" className="hover:bg-gray-100">
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" onClick={() => handleDeleteProduct(product.id)} title="Delete">
+                          <Button variant="ghost" size="icon" onClick={() => handleDeleteProduct(product.id)} title="Delete" className="hover:bg-gray-100">
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
@@ -404,18 +418,18 @@ export default function StockPage() {
                 />
               </div>
               {sellQuantity && sellingProduct && parseFloat(sellQuantity) > 0 && (
-                <div className="p-4 bg-gray-50 rounded-lg space-y-2">
+                <div className="p-4 bg-gray-50 rounded-lg space-y-2 border border-gray-200">
                   <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Sale Amount:</span>
-                    <span className="font-semibold">${(parseFloat(sellQuantity) * sellingProduct.price_per_gram).toFixed(2)}</span>
+                    <span className="text-sm text-gray-500 font-light">Sale Amount:</span>
+                    <span className="font-light text-gray-900">${(parseFloat(sellQuantity) * sellingProduct.price_per_gram).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Cost:</span>
-                    <span className="font-semibold text-red-600">-${(parseFloat(sellQuantity) * sellingProduct.cost_per_gram).toFixed(2)}</span>
+                    <span className="text-sm text-gray-500 font-light">Cost:</span>
+                    <span className="font-light text-gray-900">-${(parseFloat(sellQuantity) * sellingProduct.cost_per_gram).toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between border-t pt-2">
-                    <span className="text-sm font-medium">Profit:</span>
-                    <span className="font-bold text-green-600">
+                  <div className="flex justify-between border-t border-gray-200 pt-2">
+                    <span className="text-sm font-light">Profit:</span>
+                    <span className="font-medium text-gray-900">
                       ${(parseFloat(sellQuantity) * (sellingProduct.price_per_gram - sellingProduct.cost_per_gram)).toFixed(2)}
                     </span>
                   </div>
