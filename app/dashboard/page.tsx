@@ -15,9 +15,12 @@ interface DashboardStats {
   totalStockValue: number
   totalStockCost: number
   potentialProfit: number
-  totalDebt: number
-  totalDebtPaid: number
-  totalDebtRemaining: number
+  totalDebtToOthers: number
+  totalDebtToOthersPaid: number
+  totalDebtToOthersRemaining: number
+  totalDebtToMe: number
+  totalDebtToMePaid: number
+  totalDebtToMeRemaining: number
   pendingDebts: number
 }
 
@@ -31,9 +34,12 @@ export default function DashboardPage() {
     totalStockValue: 0,
     totalStockCost: 0,
     potentialProfit: 0,
-    totalDebt: 0,
-    totalDebtPaid: 0,
-    totalDebtRemaining: 0,
+    totalDebtToOthers: 0,
+    totalDebtToOthersPaid: 0,
+    totalDebtToOthersRemaining: 0,
+    totalDebtToMe: 0,
+    totalDebtToMePaid: 0,
+    totalDebtToMeRemaining: 0,
     pendingDebts: 0,
   })
   const [loading, setLoading] = useState(true)
@@ -51,7 +57,7 @@ export default function DashboardPage() {
         supabase.from('incomes').select('amount'),
         supabase.from('expenses').select('amount'),
         supabase.from('products').select('stock_grams, cost_per_gram, price_per_gram'),
-        supabase.from('debts').select('amount, amount_paid, status'),
+        supabase.from('debts').select('amount, amount_paid, status, type'),
         supabase.from('incomes').select('*').order('created_at', { ascending: false }).limit(5),
         supabase.from('expenses').select('*').order('created_at', { ascending: false }).limit(5)
       ])
@@ -67,9 +73,17 @@ export default function DashboardPage() {
       const potentialProfit = totalStockValue - totalStockCost
 
       const debts = debtsResult.data || []
-      const totalDebt = debts.reduce((sum, d) => sum + d.amount, 0)
-      const totalDebtPaid = debts.reduce((sum, d) => sum + d.amount_paid, 0)
-      const totalDebtRemaining = totalDebt - totalDebtPaid
+      const debtsToOthers = debts.filter(d => d.type === 'to_others')
+      const debtsToMe = debts.filter(d => d.type === 'to_me')
+      
+      const totalDebtToOthers = debtsToOthers.reduce((sum, d) => sum + d.amount, 0)
+      const totalDebtToOthersPaid = debtsToOthers.reduce((sum, d) => sum + d.amount_paid, 0)
+      const totalDebtToOthersRemaining = totalDebtToOthers - totalDebtToOthersPaid
+      
+      const totalDebtToMe = debtsToMe.reduce((sum, d) => sum + d.amount, 0)
+      const totalDebtToMePaid = debtsToMe.reduce((sum, d) => sum + d.amount_paid, 0)
+      const totalDebtToMeRemaining = totalDebtToMe - totalDebtToMePaid
+      
       const pendingDebts = debts.filter(d => d.status === 'pending').length
 
       const recentIncomes = (recentIncomesResult.data || []).map(item => ({ ...item, type: 'income' }))
@@ -87,9 +101,12 @@ export default function DashboardPage() {
         totalStockValue,
         totalStockCost,
         potentialProfit,
-        totalDebt,
-        totalDebtPaid,
-        totalDebtRemaining,
+        totalDebtToOthers,
+        totalDebtToOthersPaid,
+        totalDebtToOthersRemaining,
+        totalDebtToMe,
+        totalDebtToMePaid,
+        totalDebtToMeRemaining,
         pendingDebts,
       })
       setLoading(false)
@@ -236,41 +253,58 @@ export default function DashboardPage() {
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Debt</CardTitle>
-              <AlertCircle className="h-4 w-4 text-red-600" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card className="border-l-4 border-l-red-500">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>I Owe (Debts to Others)</span>
+                <TrendingDown className="h-5 w-5 text-red-600" />
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-600">
-                ${loading ? '...' : stats.totalDebt.toFixed(2)}
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-600">Total:</span>
+                  <span className="font-semibold text-red-600">${loading ? '...' : stats.totalDebtToOthers.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-600">Paid:</span>
+                  <span className="font-semibold text-green-600">${loading ? '...' : stats.totalDebtToOthersPaid.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between border-t pt-2">
+                  <span className="text-sm font-medium">Remaining:</span>
+                  <span className="font-bold text-orange-600">
+                    ${loading ? '...' : stats.totalDebtToOthersRemaining.toFixed(2)}
+                  </span>
+                </div>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Money you owe</p>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Debt Remaining</CardTitle>
+          <Card className="border-l-4 border-l-green-500">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>They Owe Me</span>
+                <TrendingUp className="h-5 w-5 text-green-600" />
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-orange-600">
-                ${loading ? '...' : stats.totalDebtRemaining.toFixed(2)}
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-600">Total:</span>
+                  <span className="font-semibold text-green-600">${loading ? '...' : stats.totalDebtToMe.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-600">Received:</span>
+                  <span className="font-semibold text-blue-600">${loading ? '...' : stats.totalDebtToMePaid.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between border-t pt-2">
+                  <span className="text-sm font-medium">Remaining:</span>
+                  <span className="font-bold text-orange-600">
+                    ${loading ? '...' : stats.totalDebtToMeRemaining.toFixed(2)}
+                  </span>
+                </div>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Still to pay</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending Debts</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-600">
-                {loading ? '...' : stats.pendingDebts}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">Active debts</p>
             </CardContent>
           </Card>
         </div>
@@ -338,22 +372,22 @@ export default function DashboardPage() {
                 Debt Management
                 <ArrowRight className="h-5 w-5" />
               </CardTitle>
-              <CardDescription>Track and pay your debts</CardDescription>
+              <CardDescription>Track debts to/from others</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Total Debt:</span>
-                  <span className="font-semibold text-red-600">${stats.totalDebt.toFixed(2)}</span>
+                  <span className="text-sm text-gray-600">I Owe:</span>
+                  <span className="font-semibold text-red-600">${stats.totalDebtToOthersRemaining.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Paid:</span>
-                  <span className="font-semibold text-green-600">${stats.totalDebtPaid.toFixed(2)}</span>
+                  <span className="text-sm text-gray-600">They Owe Me:</span>
+                  <span className="font-semibold text-green-600">${stats.totalDebtToMeRemaining.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between border-t pt-2">
-                  <span className="text-sm font-medium">Remaining:</span>
-                  <span className="font-bold text-orange-600">
-                    ${stats.totalDebtRemaining.toFixed(2)}
+                  <span className="text-sm font-medium">Net Position:</span>
+                  <span className={`font-bold ${(stats.totalDebtToMeRemaining - stats.totalDebtToOthersRemaining) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    ${(stats.totalDebtToMeRemaining - stats.totalDebtToOthersRemaining).toFixed(2)}
                   </span>
                 </div>
               </div>
