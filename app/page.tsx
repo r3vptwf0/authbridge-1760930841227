@@ -2,36 +2,34 @@
 
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
-import { motion } from "framer-motion"
 
 export default function Home() {
   const router = useRouter()
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center px-4">
-      <motion.div
-        initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-        className="backdrop-blur-xl bg-white/20 p-10 rounded-2xl shadow-2xl text-center max-w-md w-full border border-white/30"
-      >
-        <h1 className="text-5xl font-extrabold text-white tracking-tight drop-shadow-lg">
-          Welcome ✨
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-white flex items-center justify-center px-4">
+      <div className="bg-white p-12 rounded-lg shadow-xl text-center max-w-md w-full border border-gray-200 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <h1 className="text-5xl md:text-6xl font-light tracking-tight text-gray-900">
+          Welcome
         </h1>
-        <p className="mt-4 text-lg text-white/80">
-          Your journey starts here. Sign in to unlock the full experience.
+        <p className="mt-6 text-lg text-gray-500 font-light">
+          Your personal finance and productivity management platform
         </p>
 
-        <div className="mt-8">
+        <div className="mt-10">
           <Button
             size="lg"
-            className="w-full bg-white text-purple-600 hover:bg-purple-100 font-semibold text-lg py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+            className="w-full bg-gray-900 text-white hover:bg-gray-800 font-light text-lg py-6 rounded-lg shadow-sm hover:shadow-md transition-all duration-300"
             onClick={() => router.push("/login")}
           >
-            🚀 Go to Login
+            Get Started
           </Button>
         </div>
-      </motion.div>
+
+        <p className="mt-6 text-sm text-gray-400 font-light">
+          Sign in to access your dashboard
+        </p>
+      </div>
     </div>
   )
 }
