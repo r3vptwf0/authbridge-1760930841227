@@ -36,7 +36,6 @@ export default function StockPage() {
   const [pricePerGram, setPricePerGram] = useState("")
   const [sellQuantity, setSellQuantity] = useState("")
   const [sellTotalEarned, setSellTotalEarned] = useState("")
-  const [createDebt, setCreateDebt] = useState(false)
   const [debtPersonName, setDebtPersonName] = useState("")
   const [debtAmountPaid, setDebtAmountPaid] = useState("")
   const [consumeQuantity, setConsumeQuantity] = useState("")
@@ -145,7 +144,6 @@ export default function StockPage() {
     setSellingProduct(product)
     setSellQuantity("")
     setSellTotalEarned("")
-    setCreateDebt(false)
     setDebtPersonName("")
     setDebtAmountPaid("")
     setIsSellDialogOpen(true)
@@ -163,7 +161,8 @@ export default function StockPage() {
 
     const quantity = parseFloat(sellQuantity)
     const totalEarned = parseFloat(sellTotalEarned)
-    const amountPaid = debtAmountPaid ? parseFloat(debtAmountPaid) : totalEarned
+    const amountPaid = debtAmountPaid ? parseFloat(debtAmountPaid) : 0
+    const isDebt = amountPaid < totalEarned
     
     if (quantity <= 0) {
       toast({ title: "Error", description: "Quantity must be greater than 0", variant: "destructive" })
@@ -180,12 +179,12 @@ export default function StockPage() {
       return
     }
 
-    if (createDebt && !debtPersonName.trim()) {
-      toast({ title: "Error", description: "Please enter person's name for debt", variant: "destructive" })
+    if (isDebt && !debtPersonName.trim()) {
+      toast({ title: "Error", description: "Please enter person's name (debt will be created)", variant: "destructive" })
       return
     }
 
-    if (createDebt && amountPaid > totalEarned) {
+    if (amountPaid > totalEarned) {
       toast({ title: "Error", description: "Amount paid cannot be greater than total earned", variant: "destructive" })
       return
     }
@@ -201,8 +200,8 @@ export default function StockPage() {
       }).eq('id', sellingProduct.id)
       
       const incomeResult = await supabase.from('incomes').insert({
-        description: `Sold ${quantity}g of ${sellingProduct.name} at $${pricePerGram.toFixed(2)}/g`,
-        amount: amountPaid,
+        description: `Sold ${quantity}g of ${sellingProduct.name} at $${pricePerGram.toFixed(2)}/g${isDebt ? ` to ${debtPersonName}` : ''}`,
+        amount: amountPaid > 0 ? amountPaid : (isDebt ? 0 : totalEarned),
         category: 'Product Sale',
         date: new Date().toISOString(),
       })
@@ -210,7 +209,7 @@ export default function StockPage() {
       if (updateResult.error) throw updateResult.error
       if (incomeResult.error) throw incomeResult.error
 
-      if (createDebt && amountPaid < totalEarned) {
+      if (isDebt) {
         const debtResult = await supabase.from('debts').insert({
           person_name: debtPersonName,
           amount: totalEarned,
@@ -225,11 +224,11 @@ export default function StockPage() {
       }
 
       let successMsg = `Sold ${quantity}g for $${totalEarned.toFixed(2)} ($${pricePerGram.toFixed(2)}/g).`
-      if (createDebt && amountPaid < totalEarned) {
-        successMsg += ` Added $${(totalEarned - amountPaid).toFixed(2)} debt from ${debtPersonName}.`
-      }
       if (amountPaid > 0) {
         successMsg += ` Received $${amountPaid.toFixed(2)}.`
+      }
+      if (isDebt) {
+        successMsg += ` Debt of $${(totalEarned - amountPaid).toFixed(2)} from ${debtPersonName}.`
       }
 
       toast({ 
@@ -239,7 +238,6 @@ export default function StockPage() {
       
       setSellQuantity("")
       setSellTotalEarned("")
-      setCreateDebt(false)
       setDebtPersonName("")
       setDebtAmountPaid("")
       setSellingProduct(null)
@@ -558,46 +556,43 @@ export default function StockPage() {
                 )}
               </div>
 
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="create-debt" 
-                  checked={createDebt}
-                  onCheckedChange={(checked) => setCreateDebt(checked as boolean)}
-                />
-                <Label htmlFor="create-debt" className="font-light cursor-pointer">
-                  Create debt (not fully paid)
-                </Label>
-              </div>
-
-              {createDebt && (
-                <>
-                  <div className="space-y-2">
-                    <Label htmlFor="debt-person">Person Name</Label>
-                    <Input 
-                      id="debt-person" 
-                      type="text" 
-                      value={debtPersonName} 
-                      onChange={(e) => setDebtPersonName(e.target.value)} 
-                      placeholder="Who owes you money?"
-                      required={createDebt}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="debt-paid">Amount Paid ($)</Label>
-                    <Input 
-                      id="debt-paid" 
-                      type="number" 
-                      step="0.01" 
-                      value={debtAmountPaid} 
-                      onChange={(e) => setDebtAmountPaid(e.target.value)} 
-                      placeholder="0 for no payment"
-                    />
+              <div className="border-t border-gray-200 pt-4 space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="debt-person">Customer Name (optional)</Label>
+                  <Input 
+                    id="debt-person" 
+                    type="text" 
+                    value={debtPersonName} 
+                    onChange={(e) => setDebtPersonName(e.target.value)} 
+                    placeholder="Leave empty for anonymous sale"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="debt-paid">Amount Paid ($)</Label>
+                  <Input 
+                    id="debt-paid" 
+                    type="number" 
+                    step="0.01" 
+                    value={debtAmountPaid} 
+                    onChange={(e) => setDebtAmountPaid(e.target.value)} 
+                    placeholder="Leave empty if fully paid"
+                  />
+                  {sellTotalEarned && (
                     <p className="text-xs text-gray-500 font-light">
-                      Leave empty or enter 0 if not paid yet
+                      {!debtAmountPaid 
+                        ? '✅ Full payment (no debt)'
+                        : parseFloat(debtAmountPaid) >= parseFloat(sellTotalEarned)
+                        ? '✅ Fully paid'
+                        : parseFloat(debtAmountPaid) < parseFloat(sellTotalEarned) && !debtPersonName
+                        ? '⚠️ Debt will be created (customer name required)'
+                        : parseFloat(debtAmountPaid) < parseFloat(sellTotalEarned)
+                        ? `⚠️ Debt: $${(parseFloat(sellTotalEarned) - parseFloat(debtAmountPaid)).toFixed(2)} from ${debtPersonName}`
+                        : 'Enter amount received'
+                      }
                     </p>
-                  </div>
-                </>
-              )}
+                  )}
+                </div>
+              </div>
 
               {sellQuantity && sellTotalEarned && sellingProduct && parseFloat(sellQuantity) > 0 && parseFloat(sellTotalEarned) > 0 && (
                 <div className="p-4 bg-gray-50 rounded-lg space-y-2 border border-gray-200">
@@ -619,21 +614,19 @@ export default function StockPage() {
                       ${(parseFloat(sellTotalEarned) - (parseFloat(sellQuantity) * sellingProduct.cost_per_gram)).toFixed(2)}
                     </span>
                   </div>
-                  {createDebt && (
-                    <>
-                      <div className="flex justify-between border-t border-gray-200 pt-2">
-                        <span className="text-sm font-light">Amount Paid Now:</span>
-                        <span className="font-light text-gray-900">
-                          ${debtAmountPaid ? parseFloat(debtAmountPaid).toFixed(2) : '0.00'}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm font-light">Remaining Debt:</span>
-                        <span className="font-medium text-gray-900">
-                          ${(parseFloat(sellTotalEarned) - (debtAmountPaid ? parseFloat(debtAmountPaid) : 0)).toFixed(2)}
-                        </span>
-                      </div>
-                    </>
+                  <div className="flex justify-between border-t border-gray-200 pt-2">
+                    <span className="text-sm font-light">Amount Receiving:</span>
+                    <span className="font-light text-gray-900">
+                      ${debtAmountPaid ? parseFloat(debtAmountPaid).toFixed(2) : parseFloat(sellTotalEarned).toFixed(2)}
+                    </span>
+                  </div>
+                  {debtAmountPaid && parseFloat(debtAmountPaid) < parseFloat(sellTotalEarned) && (
+                    <div className="flex justify-between">
+                      <span className="text-sm font-light">Debt Created:</span>
+                      <span className="font-medium text-orange-600">
+                        ${(parseFloat(sellTotalEarned) - parseFloat(debtAmountPaid)).toFixed(2)}
+                      </span>
+                    </div>
                   )}
                 </div>
               )}
