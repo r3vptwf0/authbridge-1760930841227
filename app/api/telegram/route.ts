@@ -2,7 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
   try {
-    const { message } = await request.json()
+    const { message, secret } = await request.json()
+
+    const webhookSecret = process.env.INTERNAL_WEBHOOK_SECRET
+    if (webhookSecret && secret !== webhookSecret) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
 
     const botToken = process.env.TELEGRAM_BOT_TOKEN
     const chatId = process.env.TELEGRAM_CHAT_ID

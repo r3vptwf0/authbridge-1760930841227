@@ -12,6 +12,12 @@ export const ENV_VARIABLES: EnvVariable[] = [
     instructions: "Go to [Supabase Dashboard](https://supabase.com/dashboard) → Your Project → Settings → API → Copy the 'anon public' key under Project API keys"
   },
   {
+    name: "DATABASE_URL",
+    description: "PostgreSQL connection string for Prisma (database operations)",
+    required: true,
+    instructions: "Go to [Supabase Dashboard](https://supabase.com/dashboard) → Your Project → Settings → Database → Connection string → Copy the 'URI' with your password (format: postgresql://postgres:[password]@db.[project-id].supabase.co:5432/postgres)"
+  },
+  {
     name: "TELEGRAM_BOT_TOKEN",
     description: "Telegram Bot Token for sending calendar reminders",
     required: false,
