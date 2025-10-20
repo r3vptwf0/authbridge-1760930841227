@@ -11,9 +11,14 @@ export default function DashboardPage() {
       <div className="text-center space-y-6">
         <h1 className="text-4xl font-bold">Dashboard</h1>
         <p className="text-2xl text-gray-600">IN CONSTRUCTION</p>
-        <Button onClick={() => router.push('/wallet')}>
-          Go to Wallet
-        </Button>
+        <div className="flex gap-4 justify-center">
+          <Button onClick={() => router.push('/wallet')}>
+            Go to Wallet
+          </Button>
+          <Button onClick={() => router.push('/stock')}>
+            Stock Management
+          </Button>
+        </div>
       </div>
     </div>
   )
