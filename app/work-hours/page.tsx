@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
 import { getSupabaseClient } from "@/lib/supabase"
-import { Clock, LogIn, LogOut, Pencil, Trash2, Calendar } from "lucide-react"
+import { Clock, LogIn, LogOut, Pencil, Trash2, Calendar, Download } from "lucide-react"
 
 interface WorkHour {
   id: string
@@ -195,14 +195,75 @@ export default function WorkHoursPage() {
     return `${hours}h ${minutes}m`
   }
 
+  const exportToExcel = () => {
+    const csvData = [
+      ['Date', 'Clock In', 'Clock Out', 'Duration (Hours)', 'Duration (Minutes)', 'Notes'],
+      ...workHours.map(work => {
+        const clockInDate = new Date(work.clock_in)
+        const clockOutDate = work.clock_out ? new Date(work.clock_out) : null
+        
+        let durationHours = 0
+        let durationMinutes = 0
+        if (clockOutDate) {
+          const diff = clockOutDate.getTime() - clockInDate.getTime()
+          durationHours = Math.floor(diff / (1000 * 60 * 60))
+          durationMinutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+        }
+        
+        return [
+          clockInDate.toLocaleDateString(),
+          clockInDate.toLocaleTimeString(),
+          clockOutDate ? clockOutDate.toLocaleTimeString() : 'In Progress',
+          durationHours.toString(),
+          durationMinutes.toString(),
+          work.notes || ''
+        ]
+      })
+    ]
+
+    const totalCompleted = workHours.filter(w => w.clock_out).reduce((sum, w) => {
+      const start = new Date(w.clock_in)
+      const end = new Date(w.clock_out!)
+      return sum + (end.getTime() - start.getTime())
+    }, 0)
+    const totalHours = Math.floor(totalCompleted / (1000 * 60 * 60))
+    const totalMinutes = Math.floor((totalCompleted % (1000 * 60 * 60)) / (1000 * 60))
+
+    csvData.push([])
+    csvData.push(['Total Hours:', '', '', totalHours.toString(), totalMinutes.toString(), ''])
+    csvData.push(['Total Sessions:', workHours.length.toString(), '', '', '', ''])
+
+    const csvContent = csvData.map(row => row.map(cell => `"${cell}"`).join(',')).join('\n')
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    const url = URL.createObjectURL(blob)
+    link.setAttribute('href', url)
+    link.setAttribute('download', `work_hours_${new Date().toISOString().split('T')[0]}.csv`)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+
+    toast({
+      title: "Success",
+      description: "Work hours exported to Excel/CSV successfully!",
+    })
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-6xl mx-auto space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-4xl font-bold">Work Hours</h1>
-          <Button onClick={() => router.push('/dashboard')} variant="outline">
-            Back to Dashboard
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={exportToExcel} variant="outline">
+              <Download className="mr-2 h-4 w-4" />
+              Export to Excel
+            </Button>
+            <Button onClick={() => router.push('/dashboard')} variant="outline">
+              Back to Dashboard
+            </Button>
+          </div>
         </div>
 
         {activeSession && (
