@@ -216,42 +216,49 @@ export default function WalletPage() {
   const balance = totalIncome - totalExpenses
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-white p-4 md:p-8">
       <div className="max-w-6xl mx-auto space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-4xl font-bold">Wallet</h1>
-          <Button onClick={() => router.push('/dashboard')} variant="outline">
+        <div className="flex justify-between items-center pb-4 border-b border-gray-200">
+          <div>
+            <h1 className="text-4xl md:text-5xl font-light tracking-tight text-gray-900">Wallet</h1>
+            <p className="text-gray-500 mt-2 font-light">Manage your income and expenses</p>
+          </div>
+          <Button onClick={() => router.push('/dashboard')} variant="outline" className="border-gray-300 hover:bg-gray-100">
             Back to Dashboard
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="border-none shadow-sm hover:shadow-md transition-all bg-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Income</CardTitle>
-              <TrendingUp className="h-4 w-4 text-green-600" />
+              <CardTitle className="text-xs font-light text-gray-500 uppercase tracking-wider">Total Income</CardTitle>
+              <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center">
+                <TrendingUp className="h-4 w-4 text-gray-700" />
+              </div>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-green-600">${totalIncome.toFixed(2)}</p>
+              <p className="text-3xl font-light text-gray-900">${totalIncome.toFixed(2)}</p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-none shadow-sm hover:shadow-md transition-all bg-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
-              <TrendingDown className="h-4 w-4 text-red-600" />
+              <CardTitle className="text-xs font-light text-gray-500 uppercase tracking-wider">Total Expenses</CardTitle>
+              <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center">
+                <TrendingDown className="h-4 w-4 text-gray-700" />
+              </div>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-red-600">${totalExpenses.toFixed(2)}</p>
+              <p className="text-3xl font-light text-gray-900">${totalExpenses.toFixed(2)}</p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-none shadow-sm hover:shadow-md transition-all bg-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Balance</CardTitle>
+              <CardTitle className="text-xs font-light text-gray-500 uppercase tracking-wider">Balance</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className={`text-3xl font-bold ${balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              <p className="text-3xl font-light text-gray-900">
                 ${balance.toFixed(2)}
               </p>
             </CardContent>
@@ -259,22 +266,22 @@ export default function WalletPage() {
         </div>
 
         <Tabs defaultValue="expenses" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="expenses">Expenses</TabsTrigger>
-            <TabsTrigger value="incomes">Incomes</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 h-12 bg-white border border-gray-200">
+            <TabsTrigger value="expenses" className="data-[state=active]:bg-gray-900 data-[state=active]:text-white font-light">Expenses</TabsTrigger>
+            <TabsTrigger value="incomes" className="data-[state=active]:bg-gray-900 data-[state=active]:text-white font-light">Incomes</TabsTrigger>
           </TabsList>
 
           <TabsContent value="expenses">
-            <Card>
-              <CardHeader>
+            <Card className="border-none shadow-sm bg-white">
+              <CardHeader className="border-b border-gray-100">
                 <div className="flex justify-between items-center">
                   <div>
-                    <CardTitle>Expenses</CardTitle>
-                    <CardDescription>Manage your expenses</CardDescription>
+                    <CardTitle className="text-2xl font-light text-gray-900">Expenses</CardTitle>
+                    <CardDescription className="font-light">Manage your expenses</CardDescription>
                   </div>
                   <Dialog open={isAddExpenseDialogOpen} onOpenChange={setIsAddExpenseDialogOpen}>
                     <DialogTrigger asChild>
-                      <Button onClick={resetForm}>
+                      <Button onClick={resetForm} className="bg-gray-900 hover:bg-gray-800 text-white">
                         <Plus className="mr-2 h-4 w-4" />
                         Add Expense
                       </Button>
@@ -330,23 +337,23 @@ export default function WalletPage() {
                   <TableBody>
                     {expenses.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={5} className="text-center text-gray-500">
+                        <TableCell colSpan={5} className="text-center text-gray-400 py-8 font-light">
                           No expenses yet. Add your first expense!
                         </TableCell>
                       </TableRow>
                     ) : (
                       expenses.map((expense) => (
-                        <TableRow key={expense.id}>
-                          <TableCell>{new Date(expense.date).toLocaleDateString()}</TableCell>
-                          <TableCell>{expense.description}</TableCell>
-                          <TableCell>{expense.category}</TableCell>
-                          <TableCell className="text-right">${expense.amount.toFixed(2)}</TableCell>
+                        <TableRow key={expense.id} className="hover:bg-gray-50">
+                          <TableCell className="font-light text-gray-600">{new Date(expense.date).toLocaleDateString()}</TableCell>
+                          <TableCell className="font-light text-gray-900">{expense.description}</TableCell>
+                          <TableCell className="font-light text-gray-600">{expense.category}</TableCell>
+                          <TableCell className="text-right font-light text-gray-900">${expense.amount.toFixed(2)}</TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-2">
-                              <Button variant="ghost" size="icon" onClick={() => openEditExpenseDialog(expense)}>
+                              <Button variant="ghost" size="icon" onClick={() => openEditExpenseDialog(expense)} className="hover:bg-gray-100">
                                 <Pencil className="h-4 w-4" />
                               </Button>
-                              <Button variant="ghost" size="icon" onClick={() => handleDeleteExpense(expense.id)}>
+                              <Button variant="ghost" size="icon" onClick={() => handleDeleteExpense(expense.id)} className="hover:bg-gray-100">
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </div>
@@ -361,16 +368,16 @@ export default function WalletPage() {
           </TabsContent>
 
           <TabsContent value="incomes">
-            <Card>
-              <CardHeader>
+            <Card className="border-none shadow-sm bg-white">
+              <CardHeader className="border-b border-gray-100">
                 <div className="flex justify-between items-center">
                   <div>
-                    <CardTitle>Incomes</CardTitle>
-                    <CardDescription>Manage your incomes</CardDescription>
+                    <CardTitle className="text-2xl font-light text-gray-900">Incomes</CardTitle>
+                    <CardDescription className="font-light">Manage your incomes</CardDescription>
                   </div>
                   <Dialog open={isAddIncomeDialogOpen} onOpenChange={setIsAddIncomeDialogOpen}>
                     <DialogTrigger asChild>
-                      <Button onClick={resetForm}>
+                      <Button onClick={resetForm} className="bg-gray-900 hover:bg-gray-800 text-white">
                         <Plus className="mr-2 h-4 w-4" />
                         Add Income
                       </Button>
@@ -426,23 +433,23 @@ export default function WalletPage() {
                   <TableBody>
                     {incomes.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={5} className="text-center text-gray-500">
+                        <TableCell colSpan={5} className="text-center text-gray-400 py-8 font-light">
                           No incomes yet. Add your first income!
                         </TableCell>
                       </TableRow>
                     ) : (
                       incomes.map((income) => (
-                        <TableRow key={income.id}>
-                          <TableCell>{new Date(income.date).toLocaleDateString()}</TableCell>
-                          <TableCell>{income.description}</TableCell>
-                          <TableCell>{income.category}</TableCell>
-                          <TableCell className="text-right">${income.amount.toFixed(2)}</TableCell>
+                        <TableRow key={income.id} className="hover:bg-gray-50">
+                          <TableCell className="font-light text-gray-600">{new Date(income.date).toLocaleDateString()}</TableCell>
+                          <TableCell className="font-light text-gray-900">{income.description}</TableCell>
+                          <TableCell className="font-light text-gray-600">{income.category}</TableCell>
+                          <TableCell className="text-right font-light text-gray-900">${income.amount.toFixed(2)}</TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-2">
-                              <Button variant="ghost" size="icon" onClick={() => openEditIncomeDialog(income)}>
+                              <Button variant="ghost" size="icon" onClick={() => openEditIncomeDialog(income)} className="hover:bg-gray-100">
                                 <Pencil className="h-4 w-4" />
                               </Button>
-                              <Button variant="ghost" size="icon" onClick={() => handleDeleteIncome(income.id)}>
+                              <Button variant="ghost" size="icon" onClick={() => handleDeleteIncome(income.id)} className="hover:bg-gray-100">
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </div>
