@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
 import { getSupabaseClient } from "@/lib/supabase"
-import { Pencil, Trash2, Plus, Package, DollarSign } from "lucide-react"
+import { Pencil, Trash2, Plus, Package, DollarSign, UserMinus } from "lucide-react"
 
 interface Product {
   id: string
@@ -25,13 +25,16 @@ export default function StockPage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isSellDialogOpen, setIsSellDialogOpen] = useState(false)
+  const [isConsumeDialogOpen, setIsConsumeDialogOpen] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [sellingProduct, setSellingProduct] = useState<Product | null>(null)
+  const [consumingProduct, setConsumingProduct] = useState<Product | null>(null)
   const [name, setName] = useState("")
   const [stockGrams, setStockGrams] = useState("")
   const [costPerGram, setCostPerGram] = useState("")
   const [pricePerGram, setPricePerGram] = useState("")
   const [sellQuantity, setSellQuantity] = useState("")
+  const [consumeQuantity, setConsumeQuantity] = useState("")
   const { toast } = useToast()
   const router = useRouter()
 
@@ -139,6 +142,12 @@ export default function StockPage() {
     setIsSellDialogOpen(true)
   }
 
+  const openConsumeDialog = (product: Product) => {
+    setConsumingProduct(product)
+    setConsumeQuantity("")
+    setIsConsumeDialogOpen(true)
+  }
+
   const handleSellProduct = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!sellingProduct) return
@@ -184,6 +193,46 @@ export default function StockPage() {
       setSellQuantity("")
       setSellingProduct(null)
       setIsSellDialogOpen(false)
+      loadProducts()
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" })
+    }
+  }
+
+  const handleConsumeProduct = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!consumingProduct) return
+
+    const quantity = parseFloat(consumeQuantity)
+    if (quantity <= 0) {
+      toast({ title: "Error", description: "Quantity must be greater than 0", variant: "destructive" })
+      return
+    }
+
+    if (quantity > consumingProduct.stock_grams) {
+      toast({ title: "Error", description: "Not enough stock to consume", variant: "destructive" })
+      return
+    }
+
+    try {
+      const supabase = getSupabaseClient()
+      
+      const newStock = consumingProduct.stock_grams - quantity
+      
+      const { error } = await supabase.from('products').update({
+        stock_grams: newStock
+      }).eq('id', consumingProduct.id)
+
+      if (error) throw error
+
+      toast({ 
+        title: "Success", 
+        description: `Consumed ${quantity}g of ${consumingProduct.name}. Stock updated.` 
+      })
+      
+      setConsumeQuantity("")
+      setConsumingProduct(null)
+      setIsConsumeDialogOpen(false)
       loadProducts()
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" })
@@ -348,9 +397,12 @@ export default function StockPage() {
                         ${calculateProfit(product).toFixed(2)}
                       </TableCell>
                       <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
+                        <div className="flex justify-end gap-1">
                           <Button variant="ghost" size="icon" onClick={() => openSellDialog(product)} title="Sell" className="hover:bg-gray-100">
                             <DollarSign className="h-4 w-4 text-gray-700" />
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => openConsumeDialog(product)} title="Consume" className="hover:bg-gray-100">
+                            <UserMinus className="h-4 w-4 text-gray-700" />
                           </Button>
                           <Button variant="ghost" size="icon" onClick={() => openEditDialog(product)} title="Edit" className="hover:bg-gray-100">
                             <Pencil className="h-4 w-4" />
@@ -436,6 +488,50 @@ export default function StockPage() {
                 </div>
               )}
               <Button type="submit" className="w-full">Confirm Sale</Button>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={isConsumeDialogOpen} onOpenChange={setIsConsumeDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Consume Product</DialogTitle>
+              <DialogDescription>
+                {consumingProduct && `Remove ${consumingProduct.name} from stock for personal use (Available: ${consumingProduct.stock_grams.toFixed(2)}g)`}
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleConsumeProduct} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="consume-quantity">Quantity (grams)</Label>
+                <Input 
+                  id="consume-quantity" 
+                  type="number" 
+                  step="0.01" 
+                  value={consumeQuantity} 
+                  onChange={(e) => setConsumeQuantity(e.target.value)} 
+                  placeholder={`Max: ${consumingProduct?.stock_grams.toFixed(2)}g`}
+                  required 
+                />
+              </div>
+              {consumeQuantity && consumingProduct && parseFloat(consumeQuantity) > 0 && (
+                <div className="p-4 bg-gray-50 rounded-lg space-y-2 border border-gray-200">
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-500 font-light">Consuming:</span>
+                    <span className="font-light text-gray-900">{parseFloat(consumeQuantity).toFixed(2)}g</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-500 font-light">Remaining Stock:</span>
+                    <span className="font-light text-gray-900">{(consumingProduct.stock_grams - parseFloat(consumeQuantity)).toFixed(2)}g</span>
+                  </div>
+                  <div className="flex justify-between border-t border-gray-200 pt-2">
+                    <span className="text-sm font-light">Cost Value:</span>
+                    <span className="font-medium text-gray-900">
+                      ${(parseFloat(consumeQuantity) * consumingProduct.cost_per_gram).toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              )}
+              <Button type="submit" className="w-full bg-gray-900 hover:bg-gray-800">Confirm Consumption</Button>
             </form>
           </DialogContent>
         </Dialog>
