@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
 import { getSupabaseClient } from "@/lib/supabase"
-import { Pencil, Trash2, Plus, DollarSign, TrendingDown, TrendingUp } from "lucide-react"
+import { Pencil, Trash2, Plus, DollarSign, TrendingDown, TrendingUp, Calendar, User, CheckCircle2, Clock, ArrowLeft } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 interface Debt {
@@ -222,85 +222,133 @@ export default function DebtsPage() {
   const renderDebtTable = (type: 'to_me' | 'to_others') => {
     const { debts: filteredDebts } = getStats(type)
     
+    if (filteredDebts.length === 0) {
+      return (
+        <div className="text-center py-16">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-4">
+            <CheckCircle2 className="h-8 w-8 text-green-600" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">No debts recorded</h3>
+          <p className="text-gray-500">You're all clear! {type === 'to_others' ? 'You don\'t owe anyone.' : 'No one owes you.'}</p>
+        </div>
+      )
+    }
+
     return (
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Person</TableHead>
-            <TableHead>Description</TableHead>
-            <TableHead className="text-right">Amount</TableHead>
-            <TableHead className="text-right">Paid</TableHead>
-            <TableHead className="text-right">Remaining</TableHead>
-            <TableHead>Due Date</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {filteredDebts.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={8} className="text-center text-gray-500 py-8">
-                No debts recorded. Good for you!
-              </TableCell>
-            </TableRow>
-          ) : (
-            filteredDebts.map((debt) => (
-              <TableRow key={debt.id}>
-                <TableCell className="font-medium">{debt.person_name}</TableCell>
-                <TableCell>{debt.description || '-'}</TableCell>
-                <TableCell className="text-right">${debt.amount.toFixed(2)}</TableCell>
-                <TableCell className="text-right text-green-600">${debt.amount_paid.toFixed(2)}</TableCell>
-                <TableCell className="text-right font-semibold text-orange-600">
-                  ${getRemainingAmount(debt).toFixed(2)}
-                </TableCell>
-                <TableCell>{debt.due_date ? new Date(debt.due_date).toLocaleDateString() : '-'}</TableCell>
-                <TableCell>
-                  <Badge variant={debt.status === 'paid' ? 'default' : 'secondary'}>
-                    {debt.status === 'paid' ? 'Paid' : 'Pending'}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    {debt.status === 'pending' && (
-                      <Button variant="ghost" size="icon" onClick={() => openPayDialog(debt)} title="Pay">
-                        <DollarSign className="h-4 w-4 text-green-600" />
-                      </Button>
-                    )}
-                    <Button variant="ghost" size="icon" onClick={() => openEditDialog(debt)} title="Edit">
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleDeleteDebt(debt.id)} title="Delete">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+      <div className="space-y-4">
+        {filteredDebts.map((debt) => {
+          const remaining = getRemainingAmount(debt)
+          const progress = (debt.amount_paid / debt.amount) * 100
+          const isPaid = debt.status === 'paid'
+          
+          return (
+            <div key={debt.id} className="group relative bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all duration-300 hover:border-gray-300">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-start gap-4 flex-1">
+                  <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                    {debt.person_name.charAt(0).toUpperCase()}
                   </div>
-                </TableCell>
-              </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-1">
+                      <h3 className="text-xl font-bold text-gray-900">{debt.person_name}</h3>
+                      <Badge 
+                        variant={isPaid ? 'default' : 'secondary'}
+                        className={isPaid ? 'bg-green-100 text-green-700 border-green-300' : 'bg-orange-100 text-orange-700 border-orange-300'}
+                      >
+                        {isPaid ? '✓ Paid' : 'Pending'}
+                      </Badge>
+                    </div>
+                    {debt.description && (
+                      <p className="text-gray-600 text-sm mb-2">{debt.description}</p>
+                    )}
+                    <div className="flex items-center gap-4 text-sm text-gray-500">
+                      {debt.due_date && (
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-4 w-4" />
+                          <span>Due: {new Date(debt.due_date).toLocaleDateString()}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  {!isPaid && (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => openPayDialog(debt)}
+                      className="bg-green-50 hover:bg-green-100 border-green-300 text-green-700"
+                    >
+                      <DollarSign className="h-4 w-4 mr-1" />
+                      Pay
+                    </Button>
+                  )}
+                  <Button variant="ghost" size="icon" onClick={() => openEditDialog(debt)}>
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => handleDeleteDebt(debt.id)} className="hover:bg-red-50 hover:text-red-600">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4 mb-3">
+                <div>
+                  <p className="text-xs text-gray-500 mb-1">Total Amount</p>
+                  <p className="text-lg font-bold text-gray-900">${debt.amount.toFixed(2)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 mb-1">Paid</p>
+                  <p className="text-lg font-bold text-green-600">${debt.amount_paid.toFixed(2)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 mb-1">Remaining</p>
+                  <p className="text-lg font-bold text-orange-600">${remaining.toFixed(2)}</p>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-gray-500">Progress</span>
+                  <span className="font-semibold text-gray-700">{progress.toFixed(0)}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-to-r from-green-500 to-emerald-600 rounded-full transition-all duration-500"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-6xl mx-auto space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-4xl font-bold">Debt Management</h1>
-          <Button onClick={() => router.push('/dashboard')} variant="outline">
-            Back to Dashboard
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-gray-50 p-4 md:p-8">
+      <div className="max-w-7xl mx-auto space-y-6">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+          <div>
+            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Debt Management</h1>
+            <p className="text-gray-600 mt-2">Track and manage your financial obligations</p>
+          </div>
+          <Button onClick={() => router.push('/dashboard')} variant="outline" className="w-fit">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Dashboard
           </Button>
         </div>
 
         <Tabs defaultValue="to_others" className="space-y-6" onValueChange={(v) => setActiveTab(v as 'to_me' | 'to_others')}>
-          <TabsList className="grid w-full max-w-md grid-cols-2">
-            <TabsTrigger value="to_others" className="flex items-center gap-2">
+          <TabsList className="grid w-full max-w-md grid-cols-2 h-12 bg-white shadow-sm">
+            <TabsTrigger value="to_others" className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500 data-[state=active]:to-orange-500 data-[state=active]:text-white">
               <TrendingDown className="h-4 w-4" />
-              I Owe
+              <span className="font-semibold">I Owe</span>
             </TabsTrigger>
-            <TabsTrigger value="to_me" className="flex items-center gap-2">
+            <TabsTrigger value="to_me" className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-500 data-[state=active]:text-white">
               <TrendingUp className="h-4 w-4" />
-              They Owe
+              <span className="font-semibold">They Owe</span>
             </TabsTrigger>
           </TabsList>
 
@@ -308,59 +356,72 @@ export default function DebtsPage() {
             const stats = getStats(type)
             return (
               <TabsContent key={type} value={type} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <Card>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <Card className="border-none shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-blue-500 to-blue-600 text-white">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Total</CardTitle>
-                      <DollarSign className="h-4 w-4 text-muted-foreground" />
+                      <CardTitle className="text-sm font-medium text-blue-100">Total Amount</CardTitle>
+                      <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center">
+                        <DollarSign className="h-5 w-5" />
+                      </div>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-2xl font-bold">${stats.total.toFixed(2)}</p>
+                      <p className="text-3xl font-bold">${stats.total.toFixed(2)}</p>
+                      <p className="text-xs text-blue-100 mt-1">Total {type === 'to_others' ? 'owed' : 'receivable'}</p>
                     </CardContent>
                   </Card>
 
-                  <Card>
+                  <Card className="border-none shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-green-500 to-emerald-600 text-white">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Paid</CardTitle>
-                      <DollarSign className="h-4 w-4 text-green-600" />
+                      <CardTitle className="text-sm font-medium text-green-100">Paid</CardTitle>
+                      <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center">
+                        <CheckCircle2 className="h-5 w-5" />
+                      </div>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-2xl font-bold text-green-600">${stats.paid.toFixed(2)}</p>
+                      <p className="text-3xl font-bold">${stats.paid.toFixed(2)}</p>
+                      <p className="text-xs text-green-100 mt-1">{stats.total > 0 ? Math.round((stats.paid / stats.total) * 100) : 0}% completed</p>
                     </CardContent>
                   </Card>
 
-                  <Card>
+                  <Card className="border-none shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-orange-500 to-red-600 text-white">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Remaining</CardTitle>
-                      <DollarSign className="h-4 w-4 text-orange-600" />
+                      <CardTitle className="text-sm font-medium text-orange-100">Remaining</CardTitle>
+                      <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center">
+                        <Clock className="h-5 w-5" />
+                      </div>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-2xl font-bold text-orange-600">${stats.remaining.toFixed(2)}</p>
+                      <p className="text-3xl font-bold">${stats.remaining.toFixed(2)}</p>
+                      <p className="text-xs text-orange-100 mt-1">Outstanding balance</p>
                     </CardContent>
                   </Card>
 
-                  <Card>
+                  <Card className="border-none shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-purple-500 to-indigo-600 text-white">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Pending</CardTitle>
+                      <CardTitle className="text-sm font-medium text-purple-100">Pending</CardTitle>
+                      <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center">
+                        <span className="text-xl font-bold">{stats.pending}</span>
+                      </div>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-2xl font-bold text-blue-600">{stats.pending}</p>
+                      <p className="text-3xl font-bold">{stats.pending}</p>
+                      <p className="text-xs text-purple-100 mt-1">Active {stats.pending === 1 ? 'debt' : 'debts'}</p>
                     </CardContent>
                   </Card>
                 </div>
 
-                <Card>
-                  <CardHeader>
+                <Card className="border-none shadow-xl">
+                  <CardHeader className="bg-gradient-to-r from-gray-50 to-white">
                     <div className="flex justify-between items-center">
                       <div>
-                        <CardTitle>{type === 'to_others' ? 'Money I Owe' : 'Money Owed to Me'}</CardTitle>
-                        <CardDescription>
+                        <CardTitle className="text-2xl">{type === 'to_others' ? 'Money I Owe' : 'Money Owed to Me'}</CardTitle>
+                        <CardDescription className="text-base mt-1">
                           {type === 'to_others' ? 'Track debts you need to pay' : 'Track money others owe you'}
                         </CardDescription>
                       </div>
                       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                         <DialogTrigger asChild>
-                          <Button onClick={resetForm}>
+                          <Button onClick={resetForm} className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg">
                             <Plus className="mr-2 h-4 w-4" />
                             Add Debt
                           </Button>
