@@ -55,7 +55,7 @@ export default function DashboardPage() {
       
       const [incomesResult, expensesResult, productsResult, debtsResult, recentIncomesResult, recentExpensesResult] = await Promise.all([
         supabase.from('incomes').select('amount'),
-        supabase.from('expenses').select('amount'),
+        supabase.from('expenses').select('amount, category'),
         supabase.from('products').select('stock_grams, cost_per_gram, price_per_gram'),
         supabase.from('debts').select('amount, amount_paid, status, type'),
         supabase.from('incomes').select('*').order('created_at', { ascending: false }).limit(5),
@@ -64,7 +64,10 @@ export default function DashboardPage() {
 
       const totalIncome = (incomesResult.data || []).reduce((sum, item) => sum + item.amount, 0)
       const totalExpenses = (expensesResult.data || []).reduce((sum, item) => sum + item.amount, 0)
-      const balance = totalIncome - totalExpenses
+      const balanceExpenses = (expensesResult.data || [])
+        .filter(item => item.category !== 'Stock Consumption')
+        .reduce((sum, item) => sum + item.amount, 0)
+      const balance = totalIncome - balanceExpenses
 
       const products = productsResult.data || []
       const totalProducts = products.length
