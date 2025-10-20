@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useRouter } from "next/navigation"
 import { getSupabaseClient } from "@/lib/supabase"
-import { Wallet, Package, TrendingUp, TrendingDown, DollarSign, ArrowRight, AlertCircle } from "lucide-react"
+import { Wallet, Package, TrendingUp, TrendingDown, DollarSign, ArrowRight, AlertCircle, LogOut, Plus, Activity } from "lucide-react"
 
 interface DashboardStats {
   totalIncome: number
@@ -37,6 +37,7 @@ export default function DashboardPage() {
     pendingDebts: 0,
   })
   const [loading, setLoading] = useState(true)
+  const [recentTransactions, setRecentTransactions] = useState<any[]>([])
 
   useEffect(() => {
     loadDashboardData()
@@ -46,11 +47,13 @@ export default function DashboardPage() {
     try {
       const supabase = getSupabaseClient()
       
-      const [incomesResult, expensesResult, productsResult, debtsResult] = await Promise.all([
+      const [incomesResult, expensesResult, productsResult, debtsResult, recentIncomesResult, recentExpensesResult] = await Promise.all([
         supabase.from('incomes').select('amount'),
         supabase.from('expenses').select('amount'),
         supabase.from('products').select('stock_grams, cost_per_gram, price_per_gram'),
-        supabase.from('debts').select('amount, amount_paid, status')
+        supabase.from('debts').select('amount, amount_paid, status'),
+        supabase.from('incomes').select('*').order('created_at', { ascending: false }).limit(5),
+        supabase.from('expenses').select('*').order('created_at', { ascending: false }).limit(5)
       ])
 
       const totalIncome = (incomesResult.data || []).reduce((sum, item) => sum + item.amount, 0)
@@ -69,6 +72,13 @@ export default function DashboardPage() {
       const totalDebtRemaining = totalDebt - totalDebtPaid
       const pendingDebts = debts.filter(d => d.status === 'pending').length
 
+      const recentIncomes = (recentIncomesResult.data || []).map(item => ({ ...item, type: 'income' }))
+      const recentExpenses = (recentExpensesResult.data || []).map(item => ({ ...item, type: 'expense' }))
+      const allRecent = [...recentIncomes, ...recentExpenses]
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 8)
+
+      setRecentTransactions(allRecent)
       setStats({
         totalIncome,
         totalExpenses,
@@ -89,12 +99,41 @@ export default function DashboardPage() {
     }
   }
 
+  const handleLogout = () => {
+    router.push('/login')
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-7xl mx-auto space-y-8">
-        <div>
-          <h1 className="text-4xl font-bold">Dashboard</h1>
-          <p className="text-gray-600 mt-2">Overview of your finances and inventory</p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-4xl font-bold">Dashboard</h1>
+            <p className="text-gray-600 mt-2">Overview of your finances and inventory</p>
+          </div>
+          <Button onClick={handleLogout} variant="outline">
+            <LogOut className="mr-2 h-4 w-4" />
+            Logout
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Button onClick={() => router.push('/wallet')} className="h-20" variant="outline">
+            <Plus className="mr-2 h-5 w-5" />
+            Add Income
+          </Button>
+          <Button onClick={() => router.push('/wallet')} className="h-20" variant="outline">
+            <TrendingDown className="mr-2 h-5 w-5" />
+            Add Expense
+          </Button>
+          <Button onClick={() => router.push('/stock')} className="h-20" variant="outline">
+            <Package className="mr-2 h-5 w-5" />
+            Add Product
+          </Button>
+          <Button onClick={() => router.push('/debts')} className="h-20" variant="outline">
+            <AlertCircle className="mr-2 h-5 w-5" />
+            Add Debt
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -313,6 +352,56 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Activity className="mr-2 h-5 w-5" />
+              Recent Activity
+            </CardTitle>
+            <CardDescription>Your latest transactions</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="text-center py-8 text-gray-500">Loading...</div>
+            ) : recentTransactions.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">No recent transactions</div>
+            ) : (
+              <div className="space-y-3">
+                {recentTransactions.map((transaction) => (
+                  <div 
+                    key={transaction.id} 
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      {transaction.type === 'income' ? (
+                        <div className="p-2 bg-green-100 rounded-full">
+                          <TrendingUp className="h-4 w-4 text-green-600" />
+                        </div>
+                      ) : (
+                        <div className="p-2 bg-red-100 rounded-full">
+                          <TrendingDown className="h-4 w-4 text-red-600" />
+                        </div>
+                      )}
+                      <div>
+                        <p className="font-medium">{transaction.description}</p>
+                        <p className="text-sm text-gray-500">{transaction.category}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className={`font-bold ${transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
+                        {transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {new Date(transaction.date || transaction.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   )
