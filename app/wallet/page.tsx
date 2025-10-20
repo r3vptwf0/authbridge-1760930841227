@@ -213,7 +213,10 @@ export default function WalletPage() {
 
   const totalIncome = incomes.reduce((sum, income) => sum + income.amount, 0)
   const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0)
-  const balance = totalIncome - totalExpenses
+  const balanceExpenses = expenses
+    .filter(expense => expense.category !== 'Stock Consumption')
+    .reduce((sum, expense) => sum + expense.amount, 0)
+  const balance = totalIncome - balanceExpenses
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-white p-4 md:p-8">
