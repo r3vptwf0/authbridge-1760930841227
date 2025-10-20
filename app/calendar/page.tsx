@@ -26,6 +26,7 @@ interface Task {
   title: string
   description: string | null
   date: string
+  hour: string | null
   completed: boolean
 }
 
@@ -41,6 +42,7 @@ export default function CalendarPage() {
   const [isReminder, setIsReminder] = useState(false)
   const [taskTitle, setTaskTitle] = useState("")
   const [taskDescription, setTaskDescription] = useState("")
+  const [taskHour, setTaskHour] = useState("")
   const { toast } = useToast()
   const router = useRouter()
 
@@ -103,6 +105,7 @@ export default function CalendarPage() {
         title: taskTitle,
         description: taskDescription || null,
         date: new Date().toISOString(),
+        hour: taskHour || null,
       })
 
       if (error) throw error
@@ -160,6 +163,7 @@ export default function CalendarPage() {
   const resetTaskForm = () => {
     setTaskTitle("")
     setTaskDescription("")
+    setTaskHour("")
   }
 
   const getDaysInMonth = (date: Date) => {
@@ -296,8 +300,13 @@ export default function CalendarPage() {
                           checked={task.completed}
                           onCheckedChange={() => handleToggleTask(task.id, task.completed)}
                         />
-                        <div className="flex-1">
-                          <p className="font-medium">{task.title}</p>
+                         <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium">{task.title}</p>
+                            {task.hour && (
+                              <Badge variant="outline" className="text-xs">{task.hour}</Badge>
+                            )}
+                          </div>
                           {task.description && (
                             <p className="text-sm text-gray-600">{task.description}</p>
                           )}
@@ -320,8 +329,13 @@ export default function CalendarPage() {
                               checked={task.completed}
                               onCheckedChange={() => handleToggleTask(task.id, task.completed)}
                             />
-                            <div className="flex-1">
-                              <p className="font-medium line-through">{task.title}</p>
+                             <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <p className="font-medium line-through">{task.title}</p>
+                                {task.hour && (
+                                  <Badge variant="outline" className="text-xs">{task.hour}</Badge>
+                                )}
+                              </div>
                               {task.description && (
                                 <p className="text-sm text-gray-600 line-through">{task.description}</p>
                               )}
@@ -434,6 +448,15 @@ export default function CalendarPage() {
                   id="task-description"
                   value={taskDescription}
                   onChange={(e) => setTaskDescription(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="task-hour">Hour (Optional)</Label>
+                <Input
+                  id="task-hour"
+                  type="time"
+                  value={taskHour}
+                  onChange={(e) => setTaskHour(e.target.value)}
                 />
               </div>
               <Button type="submit" className="w-full">Add Task</Button>
