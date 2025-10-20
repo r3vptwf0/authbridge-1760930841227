@@ -78,6 +78,72 @@ export default function CalendarPage() {
     }
   }
 
+  const sendTaskToTelegram = async (task: Task) => {
+    try {
+      const message = `✅ <b>Task</b>\n\n📌 <b>${task.title}</b>\n${task.hour ? `⏰ ${task.hour}\n` : ''}${task.description ? `📝 ${task.description}` : ''}`
+      
+      const response = await fetch('/api/telegram', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to send task')
+      }
+      
+      toast({
+        title: "Task Sent!",
+        description: "Task reminder sent to Telegram",
+      })
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      })
+    }
+  }
+
+  const sendAllTasksToTelegram = async () => {
+    try {
+      const taskList = todayTasks.map((task, index) => 
+        `${index + 1}. ${task.title}${task.hour ? ` (${task.hour})` : ''}${task.description ? `\n   ${task.description}` : ''}`
+      ).join('\n\n')
+      
+      const message = `✅ <b>Daily Tasks (${todayTasks.length})</b>\n\n${taskList || 'No tasks for today'}`
+      
+      const response = await fetch('/api/telegram', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to send tasks')
+      }
+      
+      toast({
+        title: "Tasks Sent!",
+        description: `${todayTasks.length} tasks sent to Telegram`,
+      })
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      })
+    }
+  }
+
   useEffect(() => {
     loadData()
   }, [currentDate])
@@ -318,9 +384,22 @@ export default function CalendarPage() {
                     <CheckSquare className="mr-2 h-5 w-5" />
                     Daily Tasks
                   </CardTitle>
-                  <Button size="sm" onClick={() => setIsTaskDialogOpen(true)} className="bg-gray-900 hover:bg-gray-800 text-white">
-                    <Plus className="h-4 w-4" />
-                  </Button>
+                  <div className="flex gap-2">
+                    {todayTasks.length > 0 && (
+                      <Button 
+                        size="sm" 
+                        onClick={sendAllTasksToTelegram} 
+                        variant="outline"
+                        className="border-gray-300 hover:bg-gray-100"
+                        title="Send all tasks to Telegram"
+                      >
+                        <Send className="h-4 w-4" />
+                      </Button>
+                    )}
+                    <Button size="sm" onClick={() => setIsTaskDialogOpen(true)} className="bg-gray-900 hover:bg-gray-800 text-white">
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
                 <CardDescription className="font-light">Your to-do list</CardDescription>
               </CardHeader>
@@ -346,14 +425,25 @@ export default function CalendarPage() {
                             <p className="text-sm text-gray-500 font-light">{task.description}</p>
                           )}
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDeleteTask(task.id)}
-                          className="hover:bg-gray-100"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => sendTaskToTelegram(task)}
+                            className="hover:bg-gray-100"
+                            title="Send to Telegram"
+                          >
+                            <Send className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteTask(task.id)}
+                            className="hover:bg-gray-100"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                     ))}
                     {completedTasks.length > 0 && (
