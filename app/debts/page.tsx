@@ -21,10 +21,12 @@ interface Debt {
   description: string | null
   due_date: string | null
   status: string
+  type: string
 }
 
 export default function DebtsPage() {
   const [debts, setDebts] = useState<Debt[]>([])
+  const [activeTab, setActiveTab] = useState<'to_me' | 'to_others'>('to_others')
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isPayDialogOpen, setIsPayDialogOpen] = useState(false)
@@ -71,6 +73,7 @@ export default function DebtsPage() {
         description: description || null,
         due_date: dueDate ? new Date(dueDate).toISOString() : null,
         status: 'pending',
+        type: activeTab,
       })
 
       if (error) throw error
@@ -129,26 +132,34 @@ export default function DebtsPage() {
       const supabase = getSupabaseClient()
       const newStatus = newAmountPaid >= payingDebt.amount ? 'paid' : 'pending'
       
-      const [debtUpdate, expenseInsert] = await Promise.all([
+      const [debtUpdate, transactionInsert] = await Promise.all([
         supabase.from('debts').update({
           amount_paid: newAmountPaid,
           status: newStatus,
         }).eq('id', payingDebt.id),
         
-        supabase.from('expenses').insert({
-          description: `Paid $${payment.toFixed(2)} to ${payingDebt.person_name}`,
-          amount: payment,
-          category: 'Debt Payment',
-          date: new Date().toISOString(),
-        })
+        payingDebt.type === 'to_others'
+          ? supabase.from('expenses').insert({
+              description: `Paid $${payment.toFixed(2)} to ${payingDebt.person_name}`,
+              amount: payment,
+              category: 'Debt Payment',
+              date: new Date().toISOString(),
+            })
+          : supabase.from('incomes').insert({
+              description: `Received $${payment.toFixed(2)} from ${payingDebt.person_name}`,
+              amount: payment,
+              category: 'Debt Collection',
+              date: new Date().toISOString(),
+            })
       ])
 
       if (debtUpdate.error) throw debtUpdate.error
-      if (expenseInsert.error) throw expenseInsert.error
+      if (transactionInsert.error) throw transactionInsert.error
 
+      const recordType = payingDebt.type === 'to_others' ? 'expenses' : 'incomes'
       toast({ 
         title: "Success", 
-        description: `Payment of $${payment.toFixed(2)} recorded. Added to expenses.` 
+        description: `Payment of $${payment.toFixed(2)} recorded. Added to ${recordType}.` 
       })
       
       setPaymentAmount("")
@@ -196,10 +207,11 @@ export default function DebtsPage() {
 
   const getRemainingAmount = (debt: Debt) => debt.amount - debt.amount_paid
   
-  const totalDebt = debts.reduce((sum, debt) => sum + debt.amount, 0)
-  const totalPaid = debts.reduce((sum, debt) => sum + debt.amount_paid, 0)
+  const filteredDebts = debts.filter(d => d.type === activeTab)
+  const totalDebt = filteredDebts.reduce((sum, debt) => sum + debt.amount, 0)
+  const totalPaid = filteredDebts.reduce((sum, debt) => sum + debt.amount_paid, 0)
   const totalRemaining = totalDebt - totalPaid
-  const pendingDebts = debts.filter(d => d.status === 'pending').length
+  const pendingDebts = filteredDebts.filter(d => d.status === 'pending').length
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
@@ -208,6 +220,21 @@ export default function DebtsPage() {
           <h1 className="text-4xl font-bold">Debt Management</h1>
           <Button onClick={() => router.push('/dashboard')} variant="outline">
             Back to Dashboard
+          </Button>
+        </div>
+
+        <div className="flex gap-2">
+          <Button 
+            variant={activeTab === 'to_others' ? 'default' : 'outline'}
+            onClick={() => setActiveTab('to_others')}
+          >
+            Debts to Others (I Owe)
+          </Button>
+          <Button 
+            variant={activeTab === 'to_me' ? 'default' : 'outline'}
+            onClick={() => setActiveTab('to_me')}
+          >
+            Debts to Me (They Owe)
           </Button>
         </div>
 
@@ -255,8 +282,10 @@ export default function DebtsPage() {
           <CardHeader>
             <div className="flex justify-between items-center">
               <div>
-                <CardTitle>Debts</CardTitle>
-                <CardDescription>Track who you owe money to</CardDescription>
+                <CardTitle>{activeTab === 'to_others' ? 'Debts to Others' : 'Debts to Me'}</CardTitle>
+                <CardDescription>
+                  {activeTab === 'to_others' ? 'Track who you owe money to' : 'Track who owes you money'}
+                </CardDescription>
               </div>
               <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                 <DialogTrigger asChild>
@@ -268,7 +297,9 @@ export default function DebtsPage() {
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>Add New Debt</DialogTitle>
-                    <DialogDescription>Enter the details of your debt</DialogDescription>
+                    <DialogDescription>
+                      {activeTab === 'to_others' ? 'Enter the details of your debt' : 'Enter the details of debt owed to you'}
+                    </DialogDescription>
                   </DialogHeader>
                   <form onSubmit={handleAddDebt} className="space-y-4">
                     <div className="space-y-2">
@@ -308,14 +339,14 @@ export default function DebtsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {debts.length === 0 ? (
+                {filteredDebts.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={8} className="text-center text-gray-500">
                       No debts recorded. Good for you!
                     </TableCell>
                   </TableRow>
                 ) : (
-                  debts.map((debt) => (
+                  filteredDebts.map((debt) => (
                     <TableRow key={debt.id}>
                       <TableCell className="font-medium">{debt.person_name}</TableCell>
                       <TableCell>{debt.description || '-'}</TableCell>
