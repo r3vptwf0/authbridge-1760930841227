@@ -8,15 +8,16 @@ datasource db {
 }
 
 model User {
-  id        String    @id @default(uuid())
-  username  String    @unique
+  id        String      @id @default(uuid())
+  username  String      @unique
   password  String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
   expenses  Expense[]
   incomes   Income[]
   products  Product[]
   debts     Debt[]
+  workHours WorkHours[]
 
   @@map("users")
 }
@@ -77,4 +78,17 @@ model Debt {
   updatedAt   DateTime @updatedAt
 
   @@map("debts")
+}
+
+model WorkHours {
+  id        String    @id @default(uuid())
+  userId    String?
+  user      User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clockIn   DateTime
+  clockOut  DateTime?
+  notes     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("work_hours")
 }
