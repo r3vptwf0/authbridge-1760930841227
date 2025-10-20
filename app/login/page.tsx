@@ -39,7 +39,7 @@ export default function LoginPage() {
         description: "Logged in successfully!",
       })
 
-      router.push("/")
+      router.push("/dashboard")
     } catch (error: any) {
       toast({
         title: "Error",
