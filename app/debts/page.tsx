@@ -11,7 +11,8 @@ import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
 import { getSupabaseClient } from "@/lib/supabase"
-import { Pencil, Trash2, Plus, DollarSign, AlertCircle, CheckCircle } from "lucide-react"
+import { Pencil, Trash2, Plus, DollarSign, TrendingDown, TrendingUp } from "lucide-react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 interface Debt {
   id: string
@@ -207,11 +208,79 @@ export default function DebtsPage() {
 
   const getRemainingAmount = (debt: Debt) => debt.amount - debt.amount_paid
   
-  const filteredDebts = debts.filter(d => d.type === activeTab)
-  const totalDebt = filteredDebts.reduce((sum, debt) => sum + debt.amount, 0)
-  const totalPaid = filteredDebts.reduce((sum, debt) => sum + debt.amount_paid, 0)
-  const totalRemaining = totalDebt - totalPaid
-  const pendingDebts = filteredDebts.filter(d => d.status === 'pending').length
+  const getStats = (type: 'to_me' | 'to_others') => {
+    const filtered = debts.filter(d => d.type === type)
+    return {
+      debts: filtered,
+      total: filtered.reduce((sum, d) => sum + d.amount, 0),
+      paid: filtered.reduce((sum, d) => sum + d.amount_paid, 0),
+      remaining: filtered.reduce((sum, d) => sum + (d.amount - d.amount_paid), 0),
+      pending: filtered.filter(d => d.status === 'pending').length,
+    }
+  }
+
+  const renderDebtTable = (type: 'to_me' | 'to_others') => {
+    const { debts: filteredDebts } = getStats(type)
+    
+    return (
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Person</TableHead>
+            <TableHead>Description</TableHead>
+            <TableHead className="text-right">Amount</TableHead>
+            <TableHead className="text-right">Paid</TableHead>
+            <TableHead className="text-right">Remaining</TableHead>
+            <TableHead>Due Date</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {filteredDebts.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={8} className="text-center text-gray-500 py-8">
+                No debts recorded. Good for you!
+              </TableCell>
+            </TableRow>
+          ) : (
+            filteredDebts.map((debt) => (
+              <TableRow key={debt.id}>
+                <TableCell className="font-medium">{debt.person_name}</TableCell>
+                <TableCell>{debt.description || '-'}</TableCell>
+                <TableCell className="text-right">${debt.amount.toFixed(2)}</TableCell>
+                <TableCell className="text-right text-green-600">${debt.amount_paid.toFixed(2)}</TableCell>
+                <TableCell className="text-right font-semibold text-orange-600">
+                  ${getRemainingAmount(debt).toFixed(2)}
+                </TableCell>
+                <TableCell>{debt.due_date ? new Date(debt.due_date).toLocaleDateString() : '-'}</TableCell>
+                <TableCell>
+                  <Badge variant={debt.status === 'paid' ? 'default' : 'secondary'}>
+                    {debt.status === 'paid' ? 'Paid' : 'Pending'}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-2">
+                    {debt.status === 'pending' && (
+                      <Button variant="ghost" size="icon" onClick={() => openPayDialog(debt)} title="Pay">
+                        <DollarSign className="h-4 w-4 text-green-600" />
+                      </Button>
+                    )}
+                    <Button variant="ghost" size="icon" onClick={() => openEditDialog(debt)} title="Edit">
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => handleDeleteDebt(debt.id)} title="Delete">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
@@ -223,164 +292,117 @@ export default function DebtsPage() {
           </Button>
         </div>
 
-        <div className="flex gap-2">
-          <Button 
-            variant={activeTab === 'to_others' ? 'default' : 'outline'}
-            onClick={() => setActiveTab('to_others')}
-          >
-            Debts to Others (I Owe)
-          </Button>
-          <Button 
-            variant={activeTab === 'to_me' ? 'default' : 'outline'}
-            onClick={() => setActiveTab('to_me')}
-          >
-            Debts to Me (They Owe)
-          </Button>
-        </div>
+        <Tabs defaultValue="to_others" className="space-y-6" onValueChange={(v) => setActiveTab(v as 'to_me' | 'to_others')}>
+          <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsTrigger value="to_others" className="flex items-center gap-2">
+              <TrendingDown className="h-4 w-4" />
+              I Owe
+            </TabsTrigger>
+            <TabsTrigger value="to_me" className="flex items-center gap-2">
+              <TrendingUp className="h-4 w-4" />
+              They Owe
+            </TabsTrigger>
+          </TabsList>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Debt</CardTitle>
-              <AlertCircle className="h-4 w-4 text-red-600" />
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold text-red-600">${totalDebt.toFixed(2)}</p>
-            </CardContent>
-          </Card>
+          {(['to_others', 'to_me'] as const).map((type) => {
+            const stats = getStats(type)
+            return (
+              <TabsContent key={type} value={type} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Total</CardTitle>
+                      <DollarSign className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-2xl font-bold">${stats.total.toFixed(2)}</p>
+                    </CardContent>
+                  </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Paid</CardTitle>
-              <CheckCircle className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold text-green-600">${totalPaid.toFixed(2)}</p>
-            </CardContent>
-          </Card>
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Paid</CardTitle>
+                      <DollarSign className="h-4 w-4 text-green-600" />
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-2xl font-bold text-green-600">${stats.paid.toFixed(2)}</p>
+                    </CardContent>
+                  </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Remaining</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold text-orange-600">${totalRemaining.toFixed(2)}</p>
-            </CardContent>
-          </Card>
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Remaining</CardTitle>
+                      <DollarSign className="h-4 w-4 text-orange-600" />
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-2xl font-bold text-orange-600">${stats.remaining.toFixed(2)}</p>
+                    </CardContent>
+                  </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold text-blue-600">{pendingDebts}</p>
-            </CardContent>
-          </Card>
-        </div>
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Pending</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-2xl font-bold text-blue-600">{stats.pending}</p>
+                    </CardContent>
+                  </Card>
+                </div>
 
-        <Card>
-          <CardHeader>
-            <div className="flex justify-between items-center">
-              <div>
-                <CardTitle>{activeTab === 'to_others' ? 'Debts to Others' : 'Debts to Me'}</CardTitle>
-                <CardDescription>
-                  {activeTab === 'to_others' ? 'Track who you owe money to' : 'Track who owes you money'}
-                </CardDescription>
-              </div>
-              <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button onClick={resetForm}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Debt
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Add New Debt</DialogTitle>
-                    <DialogDescription>
-                      {activeTab === 'to_others' ? 'Enter the details of your debt' : 'Enter the details of debt owed to you'}
-                    </DialogDescription>
-                  </DialogHeader>
-                  <form onSubmit={handleAddDebt} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="person">Person Name</Label>
-                      <Input id="person" value={personName} onChange={(e) => setPersonName(e.target.value)} required />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="amount">Amount</Label>
-                      <Input id="amount" type="number" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} required />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="description">Description (Optional)</Label>
-                      <Input id="description" value={description} onChange={(e) => setDescription(e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="due-date">Due Date (Optional)</Label>
-                      <Input id="due-date" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
-                    </div>
-                    <Button type="submit" className="w-full">Add Debt</Button>
-                  </form>
-                </DialogContent>
-              </Dialog>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Person</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
-                  <TableHead className="text-right">Paid</TableHead>
-                  <TableHead className="text-right">Remaining</TableHead>
-                  <TableHead>Due Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredDebts.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={8} className="text-center text-gray-500">
-                      No debts recorded. Good for you!
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredDebts.map((debt) => (
-                    <TableRow key={debt.id}>
-                      <TableCell className="font-medium">{debt.person_name}</TableCell>
-                      <TableCell>{debt.description || '-'}</TableCell>
-                      <TableCell className="text-right">${debt.amount.toFixed(2)}</TableCell>
-                      <TableCell className="text-right text-green-600">${debt.amount_paid.toFixed(2)}</TableCell>
-                      <TableCell className="text-right font-semibold text-orange-600">${getRemainingAmount(debt).toFixed(2)}</TableCell>
-                      <TableCell>{debt.due_date ? new Date(debt.due_date).toLocaleDateString() : '-'}</TableCell>
-                      <TableCell>
-                        <Badge variant={debt.status === 'paid' ? 'default' : 'secondary'}>
-                          {debt.status === 'paid' ? 'Paid' : 'Pending'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          {debt.status === 'pending' && (
-                            <Button variant="ghost" size="icon" onClick={() => openPayDialog(debt)} title="Pay">
-                              <DollarSign className="h-4 w-4 text-green-600" />
-                            </Button>
-                          )}
-                          <Button variant="ghost" size="icon" onClick={() => openEditDialog(debt)} title="Edit">
-                            <Pencil className="h-4 w-4" />
+                <Card>
+                  <CardHeader>
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <CardTitle>{type === 'to_others' ? 'Money I Owe' : 'Money Owed to Me'}</CardTitle>
+                        <CardDescription>
+                          {type === 'to_others' ? 'Track debts you need to pay' : 'Track money others owe you'}
+                        </CardDescription>
+                      </div>
+                      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                        <DialogTrigger asChild>
+                          <Button onClick={resetForm}>
+                            <Plus className="mr-2 h-4 w-4" />
+                            Add Debt
                           </Button>
-                          <Button variant="ghost" size="icon" onClick={() => handleDeleteDebt(debt.id)} title="Delete">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Add New Debt</DialogTitle>
+                            <DialogDescription>
+                              {activeTab === 'to_others' ? 'Enter the details of your debt' : 'Enter the details of debt owed to you'}
+                            </DialogDescription>
+                          </DialogHeader>
+                          <form onSubmit={handleAddDebt} className="space-y-4">
+                            <div className="space-y-2">
+                              <Label htmlFor="person">Person Name</Label>
+                              <Input id="person" value={personName} onChange={(e) => setPersonName(e.target.value)} required />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="amount">Amount</Label>
+                              <Input id="amount" type="number" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} required />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="description">Description (Optional)</Label>
+                              <Input id="description" value={description} onChange={(e) => setDescription(e.target.value)} />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="due-date">Due Date (Optional)</Label>
+                              <Input id="due-date" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+                            </div>
+                            <Button type="submit" className="w-full">Add Debt</Button>
+                          </form>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {renderDebtTable(type)}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            )
+          })}
+        </Tabs>
 
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
           <DialogContent>
