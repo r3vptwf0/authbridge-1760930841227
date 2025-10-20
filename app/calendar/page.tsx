@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
 import { getSupabaseClient } from "@/lib/supabase"
-import { ChevronLeft, ChevronRight, Plus, Bell, CheckSquare, Trash2 } from "lucide-react"
+import { ChevronLeft, ChevronRight, Plus, Bell, CheckSquare, Trash2, Send } from "lucide-react"
 
 interface CalendarEvent {
   id: string
@@ -45,6 +45,28 @@ export default function CalendarPage() {
   const [taskHour, setTaskHour] = useState("")
   const { toast } = useToast()
   const router = useRouter()
+
+  const sendTelegramReminder = async (event: CalendarEvent) => {
+    try {
+      const eventDate = new Date(event.date)
+      const message = `🔔 Reminder: ${event.title}\n📅 Date: ${eventDate.toLocaleDateString()}\n${event.description ? `📝 ${event.description}` : ''}`
+      
+      // Open Telegram with pre-filled message
+      const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent('')}&text=${encodeURIComponent(message)}`
+      window.open(telegramUrl, '_blank')
+      
+      toast({
+        title: "Telegram Opened",
+        description: "Send the reminder to yourself or your bot",
+      })
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      })
+    }
+  }
 
   useEffect(() => {
     loadData()
@@ -417,14 +439,27 @@ export default function CalendarPage() {
                         <p className="text-xs text-gray-500 font-light">{event.description}</p>
                       )}
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDeleteEvent(event.id)}
-                      className="hover:bg-gray-100"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <div className="flex gap-1">
+                      {event.is_reminder && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => sendTelegramReminder(event)}
+                          className="hover:bg-gray-100"
+                          title="Send to Telegram"
+                        >
+                          <Send className="h-4 w-4" />
+                        </Button>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDeleteEvent(event.id)}
+                        className="hover:bg-gray-100"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
