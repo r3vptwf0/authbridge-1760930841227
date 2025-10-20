@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Checkbox } from "@/components/ui/checkbox"
 import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
 import { getSupabaseClient } from "@/lib/supabase"
@@ -34,7 +35,10 @@ export default function StockPage() {
   const [costPerGram, setCostPerGram] = useState("")
   const [pricePerGram, setPricePerGram] = useState("")
   const [sellQuantity, setSellQuantity] = useState("")
-  const [sellPrice, setSellPrice] = useState("")
+  const [sellTotalEarned, setSellTotalEarned] = useState("")
+  const [createDebt, setCreateDebt] = useState(false)
+  const [debtPersonName, setDebtPersonName] = useState("")
+  const [debtAmountPaid, setDebtAmountPaid] = useState("")
   const [consumeQuantity, setConsumeQuantity] = useState("")
   const { toast } = useToast()
   const router = useRouter()
@@ -140,7 +144,10 @@ export default function StockPage() {
   const openSellDialog = (product: Product) => {
     setSellingProduct(product)
     setSellQuantity("")
-    setSellPrice(product.price_per_gram.toString())
+    setSellTotalEarned("")
+    setCreateDebt(false)
+    setDebtPersonName("")
+    setDebtAmountPaid("")
     setIsSellDialogOpen(true)
   }
 
@@ -155,15 +162,16 @@ export default function StockPage() {
     if (!sellingProduct) return
 
     const quantity = parseFloat(sellQuantity)
-    const pricePerGram = parseFloat(sellPrice)
+    const totalEarned = parseFloat(sellTotalEarned)
+    const amountPaid = debtAmountPaid ? parseFloat(debtAmountPaid) : totalEarned
     
     if (quantity <= 0) {
       toast({ title: "Error", description: "Quantity must be greater than 0", variant: "destructive" })
       return
     }
 
-    if (pricePerGram <= 0) {
-      toast({ title: "Error", description: "Price must be greater than 0", variant: "destructive" })
+    if (totalEarned <= 0) {
+      toast({ title: "Error", description: "Total earned must be greater than 0", variant: "destructive" })
       return
     }
 
@@ -172,35 +180,68 @@ export default function StockPage() {
       return
     }
 
+    if (createDebt && !debtPersonName.trim()) {
+      toast({ title: "Error", description: "Please enter person's name for debt", variant: "destructive" })
+      return
+    }
+
+    if (createDebt && amountPaid > totalEarned) {
+      toast({ title: "Error", description: "Amount paid cannot be greater than total earned", variant: "destructive" })
+      return
+    }
+
     try {
       const supabase = getSupabaseClient()
       
       const newStock = sellingProduct.stock_grams - quantity
-      const saleAmount = quantity * pricePerGram
+      const pricePerGram = totalEarned / quantity
       
-      const [updateResult, incomeResult] = await Promise.all([
-        supabase.from('products').update({
-          stock_grams: newStock
-        }).eq('id', sellingProduct.id),
-        
-        supabase.from('incomes').insert({
-          description: `Sold ${quantity}g of ${sellingProduct.name}`,
-          amount: saleAmount,
-          category: 'Product Sale',
-          date: new Date().toISOString(),
-        })
-      ])
+      const updateResult = await supabase.from('products').update({
+        stock_grams: newStock
+      }).eq('id', sellingProduct.id)
+      
+      const incomeResult = await supabase.from('incomes').insert({
+        description: `Sold ${quantity}g of ${sellingProduct.name} at $${pricePerGram.toFixed(2)}/g`,
+        amount: amountPaid,
+        category: 'Product Sale',
+        date: new Date().toISOString(),
+      })
 
       if (updateResult.error) throw updateResult.error
       if (incomeResult.error) throw incomeResult.error
 
+      if (createDebt && amountPaid < totalEarned) {
+        const debtResult = await supabase.from('debts').insert({
+          person_name: debtPersonName,
+          amount: totalEarned,
+          amount_paid: amountPaid,
+          description: `Sold ${quantity}g of ${sellingProduct.name} at $${pricePerGram.toFixed(2)}/g`,
+          type: 'to_me',
+          status: amountPaid === 0 ? 'pending' : 'partial',
+          date: new Date().toISOString(),
+        })
+        
+        if (debtResult.error) throw debtResult.error
+      }
+
+      let successMsg = `Sold ${quantity}g for $${totalEarned.toFixed(2)} ($${pricePerGram.toFixed(2)}/g).`
+      if (createDebt && amountPaid < totalEarned) {
+        successMsg += ` Added $${(totalEarned - amountPaid).toFixed(2)} debt from ${debtPersonName}.`
+      }
+      if (amountPaid > 0) {
+        successMsg += ` Received $${amountPaid.toFixed(2)}.`
+      }
+
       toast({ 
         title: "Success", 
-        description: `Sold ${quantity}g for $${saleAmount.toFixed(2)}. Added to wallet as income.` 
+        description: successMsg
       })
       
       setSellQuantity("")
-      setSellPrice("")
+      setSellTotalEarned("")
+      setCreateDebt(false)
+      setDebtPersonName("")
+      setDebtAmountPaid("")
       setSellingProduct(null)
       setIsSellDialogOpen(false)
       loadProducts()
@@ -500,27 +541,73 @@ export default function StockPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="sell-price">Price per Gram ($)</Label>
+                <Label htmlFor="sell-total">Total Earned ($)</Label>
                 <Input 
-                  id="sell-price" 
+                  id="sell-total" 
                   type="number" 
                   step="0.01" 
-                  value={sellPrice} 
-                  onChange={(e) => setSellPrice(e.target.value)} 
-                  placeholder="Enter selling price"
+                  value={sellTotalEarned} 
+                  onChange={(e) => setSellTotalEarned(e.target.value)} 
+                  placeholder="Enter total sale amount"
                   required 
                 />
-                {sellingProduct && (
+                {sellingProduct && sellQuantity && parseFloat(sellQuantity) > 0 && (
                   <p className="text-xs text-gray-500 font-light">
-                    Default price: ${sellingProduct.price_per_gram.toFixed(2)}/g | Cost: ${sellingProduct.cost_per_gram.toFixed(2)}/g
+                    Suggested: ${(parseFloat(sellQuantity) * sellingProduct.price_per_gram).toFixed(2)} (${sellingProduct.price_per_gram.toFixed(2)}/g)
                   </p>
                 )}
               </div>
-              {sellQuantity && sellPrice && sellingProduct && parseFloat(sellQuantity) > 0 && parseFloat(sellPrice) > 0 && (
+
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="create-debt" 
+                  checked={createDebt}
+                  onCheckedChange={(checked) => setCreateDebt(checked as boolean)}
+                />
+                <Label htmlFor="create-debt" className="font-light cursor-pointer">
+                  Create debt (not fully paid)
+                </Label>
+              </div>
+
+              {createDebt && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="debt-person">Person Name</Label>
+                    <Input 
+                      id="debt-person" 
+                      type="text" 
+                      value={debtPersonName} 
+                      onChange={(e) => setDebtPersonName(e.target.value)} 
+                      placeholder="Who owes you money?"
+                      required={createDebt}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="debt-paid">Amount Paid ($)</Label>
+                    <Input 
+                      id="debt-paid" 
+                      type="number" 
+                      step="0.01" 
+                      value={debtAmountPaid} 
+                      onChange={(e) => setDebtAmountPaid(e.target.value)} 
+                      placeholder="0 for no payment"
+                    />
+                    <p className="text-xs text-gray-500 font-light">
+                      Leave empty or enter 0 if not paid yet
+                    </p>
+                  </div>
+                </>
+              )}
+
+              {sellQuantity && sellTotalEarned && sellingProduct && parseFloat(sellQuantity) > 0 && parseFloat(sellTotalEarned) > 0 && (
                 <div className="p-4 bg-gray-50 rounded-lg space-y-2 border border-gray-200">
                   <div className="flex justify-between">
-                    <span className="text-sm text-gray-500 font-light">Sale Amount:</span>
-                    <span className="font-light text-gray-900">${(parseFloat(sellQuantity) * parseFloat(sellPrice)).toFixed(2)}</span>
+                    <span className="text-sm text-gray-500 font-light">Price per Gram:</span>
+                    <span className="font-light text-gray-900">${(parseFloat(sellTotalEarned) / parseFloat(sellQuantity)).toFixed(2)}/g</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-500 font-light">Total Sale:</span>
+                    <span className="font-light text-gray-900">${parseFloat(sellTotalEarned).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-500 font-light">Cost:</span>
@@ -529,9 +616,25 @@ export default function StockPage() {
                   <div className="flex justify-between border-t border-gray-200 pt-2">
                     <span className="text-sm font-light">Profit:</span>
                     <span className="font-medium text-gray-900">
-                      ${(parseFloat(sellQuantity) * (parseFloat(sellPrice) - sellingProduct.cost_per_gram)).toFixed(2)}
+                      ${(parseFloat(sellTotalEarned) - (parseFloat(sellQuantity) * sellingProduct.cost_per_gram)).toFixed(2)}
                     </span>
                   </div>
+                  {createDebt && (
+                    <>
+                      <div className="flex justify-between border-t border-gray-200 pt-2">
+                        <span className="text-sm font-light">Amount Paid Now:</span>
+                        <span className="font-light text-gray-900">
+                          ${debtAmountPaid ? parseFloat(debtAmountPaid).toFixed(2) : '0.00'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm font-light">Remaining Debt:</span>
+                        <span className="font-medium text-gray-900">
+                          ${(parseFloat(sellTotalEarned) - (debtAmountPaid ? parseFloat(debtAmountPaid) : 0)).toFixed(2)}
+                        </span>
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
               <Button type="submit" className="w-full">Confirm Sale</Button>
