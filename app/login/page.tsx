@@ -13,7 +13,6 @@ export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-  const [isSignUp, setIsSignUp] = useState(false)
   const { toast } = useToast()
   const router = useRouter()
 
@@ -24,33 +23,19 @@ export default function LoginPage() {
     try {
       const supabase = getSupabaseClient()
       
-      if (isSignUp) {
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-        })
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
 
-        if (error) throw error
+      if (error) throw error
 
-        toast({
-          title: "Success",
-          description: "Account created! Please check your email to verify your account.",
-        })
-      } else {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        })
+      toast({
+        title: "Success",
+        description: "Logged in successfully!",
+      })
 
-        if (error) throw error
-
-        toast({
-          title: "Success",
-          description: "Logged in successfully!",
-        })
-
-        router.push("/")
-      }
+      router.push("/")
     } catch (error: any) {
       toast({
         title: "Error",
@@ -66,11 +51,9 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>{isSignUp ? "Create an account" : "Login"}</CardTitle>
+          <CardTitle>Login</CardTitle>
           <CardDescription>
-            {isSignUp
-              ? "Enter your email below to create your account"
-              : "Enter your email below to login to your account"}
+            Enter your email below to login to your account
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -99,20 +82,9 @@ export default function LoginPage() {
               />
             </div>
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Loading..." : isSignUp ? "Sign up" : "Login"}
+              {isLoading ? "Loading..." : "Login"}
             </Button>
           </form>
-          <div className="mt-4 text-center text-sm">
-            {isSignUp ? "Already have an account? " : "Don't have an account? "}
-            <button
-              type="button"
-              onClick={() => setIsSignUp(!isSignUp)}
-              className="underline"
-              disabled={isLoading}
-            >
-              {isSignUp ? "Login" : "Sign up"}
-            </button>
-          </div>
         </CardContent>
       </Card>
     </div>
