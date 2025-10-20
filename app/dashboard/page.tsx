@@ -121,159 +121,167 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-white p-4 md:p-8">
       <div className="max-w-7xl mx-auto space-y-8">
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center pb-4 border-b border-gray-200">
           <div>
-            <h1 className="text-4xl font-bold">Dashboard</h1>
-            <p className="text-gray-600 mt-2">Overview of your finances and inventory</p>
+            <h1 className="text-4xl md:text-5xl font-light tracking-tight text-gray-900">Dashboard</h1>
+            <p className="text-gray-500 mt-2 font-light">Overview of your finances and inventory</p>
           </div>
-          <Button onClick={handleLogout} variant="outline">
+          <Button onClick={handleLogout} variant="outline" className="border-gray-300 hover:bg-gray-100">
             <LogOut className="mr-2 h-4 w-4" />
             Logout
           </Button>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          <Button onClick={() => router.push('/wallet')} className="h-20" variant="outline">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+          <Button onClick={() => router.push('/wallet')} className="h-20 bg-white hover:bg-gray-50 text-gray-900 border border-gray-200 shadow-sm" variant="outline">
             <Plus className="mr-2 h-5 w-5" />
-            Add Income
+            <span className="font-light">Add Income</span>
           </Button>
-          <Button onClick={() => router.push('/wallet')} className="h-20" variant="outline">
+          <Button onClick={() => router.push('/wallet')} className="h-20 bg-white hover:bg-gray-50 text-gray-900 border border-gray-200 shadow-sm" variant="outline">
             <TrendingDown className="mr-2 h-5 w-5" />
-            Add Expense
+            <span className="font-light">Add Expense</span>
           </Button>
-          <Button onClick={() => router.push('/stock')} className="h-20" variant="outline">
+          <Button onClick={() => router.push('/stock')} className="h-20 bg-white hover:bg-gray-50 text-gray-900 border border-gray-200 shadow-sm" variant="outline">
             <Package className="mr-2 h-5 w-5" />
-            Add Product
+            <span className="font-light">Add Product</span>
           </Button>
-          <Button onClick={() => router.push('/debts')} className="h-20" variant="outline">
+          <Button onClick={() => router.push('/debts')} className="h-20 bg-white hover:bg-gray-50 text-gray-900 border border-gray-200 shadow-sm" variant="outline">
             <AlertCircle className="mr-2 h-5 w-5" />
-            Add Debt
+            <span className="font-light">Add Debt</span>
           </Button>
-          <Button onClick={() => router.push('/work-hours')} className="h-20" variant="outline">
+          <Button onClick={() => router.push('/work-hours')} className="h-20 bg-white hover:bg-gray-50 text-gray-900 border border-gray-200 shadow-sm" variant="outline">
             <Clock className="mr-2 h-5 w-5" />
-            Work Hours
+            <span className="font-light">Work Hours</span>
           </Button>
-          <Button onClick={() => router.push('/calendar')} className="h-20" variant="outline">
+          <Button onClick={() => router.push('/calendar')} className="h-20 bg-white hover:bg-gray-50 text-gray-900 border border-gray-200 shadow-sm" variant="outline">
             <Calendar className="mr-2 h-5 w-5" />
-            Calendar
+            <span className="font-light">Calendar</span>
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card className="border-none shadow-sm bg-white hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Income</CardTitle>
-              <TrendingUp className="h-4 w-4 text-green-600" />
+              <CardTitle className="text-xs font-light text-gray-500 uppercase tracking-wider">Total Income</CardTitle>
+              <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center">
+                <TrendingUp className="h-4 w-4 text-gray-700" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-3xl font-light text-gray-900">
                 ${loading ? '...' : stats.totalIncome.toFixed(2)}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">From all sources</p>
+              <p className="text-xs text-gray-400 mt-1 font-light">From all sources</p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-none shadow-sm bg-white hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
-              <TrendingDown className="h-4 w-4 text-red-600" />
+              <CardTitle className="text-xs font-light text-gray-500 uppercase tracking-wider">Total Expenses</CardTitle>
+              <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center">
+                <TrendingDown className="h-4 w-4 text-gray-700" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-600">
+              <div className="text-3xl font-light text-gray-900">
                 ${loading ? '...' : stats.totalExpenses.toFixed(2)}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">All spending</p>
+              <p className="text-xs text-gray-400 mt-1 font-light">All spending</p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-none shadow-sm bg-white hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Balance</CardTitle>
-              <DollarSign className="h-4 w-4 text-blue-600" />
+              <CardTitle className="text-xs font-light text-gray-500 uppercase tracking-wider">Balance</CardTitle>
+              <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center">
+                <DollarSign className="h-4 w-4 text-gray-700" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className={`text-2xl font-bold ${stats.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              <div className="text-3xl font-light text-gray-900">
                 ${loading ? '...' : stats.balance.toFixed(2)}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Current balance</p>
+              <p className="text-xs text-gray-400 mt-1 font-light">Current balance</p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-none shadow-sm bg-white hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Products</CardTitle>
-              <Package className="h-4 w-4 text-purple-600" />
+              <CardTitle className="text-xs font-light text-gray-500 uppercase tracking-wider">Products</CardTitle>
+              <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center">
+                <Package className="h-4 w-4 text-gray-700" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-purple-600">
+              <div className="text-3xl font-light text-gray-900">
                 {loading ? '...' : stats.totalProducts}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">In inventory</p>
+              <p className="text-xs text-gray-400 mt-1 font-light">In inventory</p>
             </CardContent>
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="border-none shadow-sm bg-white hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Stock Value</CardTitle>
+              <CardTitle className="text-xs font-light text-gray-500 uppercase tracking-wider">Stock Value</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-600">
+              <div className="text-2xl font-light text-gray-900">
                 ${loading ? '...' : stats.totalStockValue.toFixed(2)}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Potential sales value</p>
+              <p className="text-xs text-gray-400 mt-1 font-light">Potential sales value</p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-none shadow-sm bg-white hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Stock Cost</CardTitle>
+              <CardTitle className="text-xs font-light text-gray-500 uppercase tracking-wider">Stock Cost</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-600">
+              <div className="text-2xl font-light text-gray-900">
                 ${loading ? '...' : stats.totalStockCost.toFixed(2)}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Investment in stock</p>
+              <p className="text-xs text-gray-400 mt-1 font-light">Investment in stock</p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-none shadow-sm bg-white hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Potential Profit</CardTitle>
+              <CardTitle className="text-xs font-light text-gray-500 uppercase tracking-wider">Potential Profit</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className={`text-2xl font-bold ${stats.potentialProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              <div className="text-2xl font-light text-gray-900">
                 ${loading ? '...' : stats.potentialProfit.toFixed(2)}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">If all stock sold</p>
+              <p className="text-xs text-gray-400 mt-1 font-light">If all stock sold</p>
             </CardContent>
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="border-l-4 border-l-red-500">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card className="border-none shadow-sm bg-white hover:shadow-md transition-shadow border-l-2 border-l-gray-900">
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
-                <span>I Owe (Debts to Others)</span>
-                <TrendingDown className="h-5 w-5 text-red-600" />
+                <span className="font-light">I Owe (Debts to Others)</span>
+                <TrendingDown className="h-5 w-5 text-gray-700" />
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Total:</span>
-                  <span className="font-semibold text-red-600">${loading ? '...' : stats.totalDebtToOthers.toFixed(2)}</span>
+                  <span className="text-sm text-gray-500 font-light">Total:</span>
+                  <span className="font-light text-gray-900">${loading ? '...' : stats.totalDebtToOthers.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Paid:</span>
-                  <span className="font-semibold text-green-600">${loading ? '...' : stats.totalDebtToOthersPaid.toFixed(2)}</span>
+                  <span className="text-sm text-gray-500 font-light">Paid:</span>
+                  <span className="font-light text-gray-600">${loading ? '...' : stats.totalDebtToOthersPaid.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between border-t pt-2">
-                  <span className="text-sm font-medium">Remaining:</span>
-                  <span className="font-bold text-orange-600">
+                  <span className="text-sm font-light">Remaining:</span>
+                  <span className="font-medium text-gray-900">
                     ${loading ? '...' : stats.totalDebtToOthersRemaining.toFixed(2)}
                   </span>
                 </div>
@@ -281,26 +289,26 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-l-4 border-l-green-500">
+          <Card className="border-none shadow-sm bg-white hover:shadow-md transition-shadow border-l-2 border-l-gray-400">
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
-                <span>They Owe Me</span>
-                <TrendingUp className="h-5 w-5 text-green-600" />
+                <span className="font-light">They Owe Me</span>
+                <TrendingUp className="h-5 w-5 text-gray-700" />
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Total:</span>
-                  <span className="font-semibold text-green-600">${loading ? '...' : stats.totalDebtToMe.toFixed(2)}</span>
+                  <span className="text-sm text-gray-500 font-light">Total:</span>
+                  <span className="font-light text-gray-900">${loading ? '...' : stats.totalDebtToMe.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Received:</span>
-                  <span className="font-semibold text-blue-600">${loading ? '...' : stats.totalDebtToMePaid.toFixed(2)}</span>
+                  <span className="text-sm text-gray-500 font-light">Received:</span>
+                  <span className="font-light text-gray-600">${loading ? '...' : stats.totalDebtToMePaid.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between border-t pt-2">
-                  <span className="text-sm font-medium">Remaining:</span>
-                  <span className="font-bold text-orange-600">
+                  <span className="text-sm font-light">Remaining:</span>
+                  <span className="font-medium text-gray-900">
                     ${loading ? '...' : stats.totalDebtToMeRemaining.toFixed(2)}
                   </span>
                 </div>
@@ -309,28 +317,28 @@ export default function DashboardPage() {
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => router.push('/wallet')}>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="cursor-pointer border-none shadow-sm bg-white hover:shadow-md transition-all" onClick={() => router.push('/wallet')}>
             <CardHeader>
-              <CardTitle className="flex items-center justify-between">
+              <CardTitle className="flex items-center justify-between font-light text-gray-900">
                 Wallet
                 <ArrowRight className="h-5 w-5" />
               </CardTitle>
-              <CardDescription>Manage your income and expenses</CardDescription>
+              <CardDescription className="font-light">Manage your income and expenses</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Income:</span>
-                  <span className="font-semibold text-green-600">${stats.totalIncome.toFixed(2)}</span>
+                  <span className="text-sm text-gray-500 font-light">Income:</span>
+                  <span className="font-light text-gray-900">${stats.totalIncome.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Expenses:</span>
-                  <span className="font-semibold text-red-600">${stats.totalExpenses.toFixed(2)}</span>
+                  <span className="text-sm text-gray-500 font-light">Expenses:</span>
+                  <span className="font-light text-gray-900">${stats.totalExpenses.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between border-t pt-2">
-                  <span className="text-sm font-medium">Balance:</span>
-                  <span className={`font-bold ${stats.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  <span className="text-sm font-light">Balance:</span>
+                  <span className="font-medium text-gray-900">
                     ${stats.balance.toFixed(2)}
                   </span>
                 </div>
@@ -338,27 +346,27 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => router.push('/stock')}>
+          <Card className="cursor-pointer border-none shadow-sm bg-white hover:shadow-md transition-all" onClick={() => router.push('/stock')}>
             <CardHeader>
-              <CardTitle className="flex items-center justify-between">
+              <CardTitle className="flex items-center justify-between font-light text-gray-900">
                 Stock Management
                 <ArrowRight className="h-5 w-5" />
               </CardTitle>
-              <CardDescription>Track your inventory and profits</CardDescription>
+              <CardDescription className="font-light">Track your inventory and profits</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Products:</span>
-                  <span className="font-semibold text-purple-600">{stats.totalProducts}</span>
+                  <span className="text-sm text-gray-500 font-light">Products:</span>
+                  <span className="font-light text-gray-900">{stats.totalProducts}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Stock Value:</span>
-                  <span className="font-semibold text-blue-600">${stats.totalStockValue.toFixed(2)}</span>
+                  <span className="text-sm text-gray-500 font-light">Stock Value:</span>
+                  <span className="font-light text-gray-900">${stats.totalStockValue.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between border-t pt-2">
-                  <span className="text-sm font-medium">Potential Profit:</span>
-                  <span className={`font-bold ${stats.potentialProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  <span className="text-sm font-light">Potential Profit:</span>
+                  <span className="font-medium text-gray-900">
                     ${stats.potentialProfit.toFixed(2)}
                   </span>
                 </div>
@@ -366,27 +374,27 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => router.push('/debts')}>
+          <Card className="cursor-pointer border-none shadow-sm bg-white hover:shadow-md transition-all" onClick={() => router.push('/debts')}>
             <CardHeader>
-              <CardTitle className="flex items-center justify-between">
+              <CardTitle className="flex items-center justify-between font-light text-gray-900">
                 Debt Management
                 <ArrowRight className="h-5 w-5" />
               </CardTitle>
-              <CardDescription>Track debts to/from others</CardDescription>
+              <CardDescription className="font-light">Track debts to/from others</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">I Owe:</span>
-                  <span className="font-semibold text-red-600">${stats.totalDebtToOthersRemaining.toFixed(2)}</span>
+                  <span className="text-sm text-gray-500 font-light">I Owe:</span>
+                  <span className="font-light text-gray-900">${stats.totalDebtToOthersRemaining.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">They Owe Me:</span>
-                  <span className="font-semibold text-green-600">${stats.totalDebtToMeRemaining.toFixed(2)}</span>
+                  <span className="text-sm text-gray-500 font-light">They Owe Me:</span>
+                  <span className="font-light text-gray-900">${stats.totalDebtToMeRemaining.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between border-t pt-2">
-                  <span className="text-sm font-medium">Net Position:</span>
-                  <span className={`font-bold ${(stats.totalDebtToMeRemaining - stats.totalDebtToOthersRemaining) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  <span className="text-sm font-light">Net Position:</span>
+                  <span className="font-medium text-gray-900">
                     ${(stats.totalDebtToMeRemaining - stats.totalDebtToOthersRemaining).toFixed(2)}
                   </span>
                 </div>
@@ -395,46 +403,46 @@ export default function DashboardPage() {
           </Card>
         </div>
 
-        <Card>
+        <Card className="border-none shadow-sm bg-white">
           <CardHeader>
-            <CardTitle className="flex items-center">
+            <CardTitle className="flex items-center font-light text-gray-900">
               <Activity className="mr-2 h-5 w-5" />
               Recent Activity
             </CardTitle>
-            <CardDescription>Your latest transactions</CardDescription>
+            <CardDescription className="font-light">Your latest transactions</CardDescription>
           </CardHeader>
           <CardContent>
             {loading ? (
-              <div className="text-center py-8 text-gray-500">Loading...</div>
+              <div className="text-center py-8 text-gray-400 font-light">Loading...</div>
             ) : recentTransactions.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">No recent transactions</div>
+              <div className="text-center py-8 text-gray-400 font-light">No recent transactions</div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {recentTransactions.map((transaction) => (
                   <div 
                     key={transaction.id} 
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                    className="flex items-center justify-between p-4 border border-gray-100 rounded-lg hover:border-gray-200 transition-all"
                   >
                     <div className="flex items-center gap-3">
                       {transaction.type === 'income' ? (
-                        <div className="p-2 bg-green-100 rounded-full">
-                          <TrendingUp className="h-4 w-4 text-green-600" />
+                        <div className="p-2 bg-gray-100 rounded-full">
+                          <TrendingUp className="h-4 w-4 text-gray-700" />
                         </div>
                       ) : (
-                        <div className="p-2 bg-red-100 rounded-full">
-                          <TrendingDown className="h-4 w-4 text-red-600" />
+                        <div className="p-2 bg-gray-100 rounded-full">
+                          <TrendingDown className="h-4 w-4 text-gray-700" />
                         </div>
                       )}
                       <div>
-                        <p className="font-medium">{transaction.description}</p>
-                        <p className="text-sm text-gray-500">{transaction.category}</p>
+                        <p className="font-light text-gray-900">{transaction.description}</p>
+                        <p className="text-sm text-gray-400 font-light">{transaction.category}</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className={`font-bold ${transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
+                      <p className="font-light text-gray-900">
                         {transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-gray-400 font-light">
                         {new Date(transaction.date || transaction.created_at).toLocaleDateString()}
                       </p>
                     </div>
