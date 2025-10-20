@@ -10,6 +10,18 @@ export const ENV_VARIABLES: EnvVariable[] = [
     description: "Supabase anonymous/publishable key for client-side authentication",
     required: true,
     instructions: "Go to [Supabase Dashboard](https://supabase.com/dashboard) → Your Project → Settings → API → Copy the 'anon public' key under Project API keys"
+  },
+  {
+    name: "TELEGRAM_BOT_TOKEN",
+    description: "Telegram Bot Token for sending calendar reminders",
+    required: false,
+    instructions: "Message @BotFather on Telegram, use /newbot command to create a bot, and copy the token provided"
+  },
+  {
+    name: "TELEGRAM_CHAT_ID",
+    description: "Your Telegram Chat ID to receive reminders",
+    required: false,
+    instructions: "Message @userinfobot on Telegram to get your chat ID, or use @RawDataBot to get your user ID"
   }
 ];
 

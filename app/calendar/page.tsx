@@ -49,15 +49,25 @@ export default function CalendarPage() {
   const sendTelegramReminder = async (event: CalendarEvent) => {
     try {
       const eventDate = new Date(event.date)
-      const message = `🔔 Reminder: ${event.title}\n📅 Date: ${eventDate.toLocaleDateString()}\n${event.description ? `📝 ${event.description}` : ''}`
+      const message = `🔔 <b>Reminder</b>\n\n📌 <b>${event.title}</b>\n📅 ${eventDate.toLocaleDateString()} at ${eventDate.toLocaleTimeString()}\n${event.description ? `\n📝 ${event.description}` : ''}`
       
-      // Open Telegram with pre-filled message
-      const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent('')}&text=${encodeURIComponent(message)}`
-      window.open(telegramUrl, '_blank')
+      const response = await fetch('/api/telegram', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to send reminder')
+      }
       
       toast({
-        title: "Telegram Opened",
-        description: "Send the reminder to yourself or your bot",
+        title: "Reminder Sent!",
+        description: "Telegram notification sent successfully",
       })
     } catch (error: any) {
       toast({
