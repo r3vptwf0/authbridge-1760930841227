@@ -34,6 +34,7 @@ export default function StockPage() {
   const [costPerGram, setCostPerGram] = useState("")
   const [pricePerGram, setPricePerGram] = useState("")
   const [sellQuantity, setSellQuantity] = useState("")
+  const [sellPrice, setSellPrice] = useState("")
   const [consumeQuantity, setConsumeQuantity] = useState("")
   const { toast } = useToast()
   const router = useRouter()
@@ -139,6 +140,7 @@ export default function StockPage() {
   const openSellDialog = (product: Product) => {
     setSellingProduct(product)
     setSellQuantity("")
+    setSellPrice(product.price_per_gram.toString())
     setIsSellDialogOpen(true)
   }
 
@@ -153,8 +155,15 @@ export default function StockPage() {
     if (!sellingProduct) return
 
     const quantity = parseFloat(sellQuantity)
+    const pricePerGram = parseFloat(sellPrice)
+    
     if (quantity <= 0) {
       toast({ title: "Error", description: "Quantity must be greater than 0", variant: "destructive" })
+      return
+    }
+
+    if (pricePerGram <= 0) {
+      toast({ title: "Error", description: "Price must be greater than 0", variant: "destructive" })
       return
     }
 
@@ -167,7 +176,7 @@ export default function StockPage() {
       const supabase = getSupabaseClient()
       
       const newStock = sellingProduct.stock_grams - quantity
-      const saleAmount = quantity * sellingProduct.price_per_gram
+      const saleAmount = quantity * pricePerGram
       
       const [updateResult, incomeResult] = await Promise.all([
         supabase.from('products').update({
@@ -191,6 +200,7 @@ export default function StockPage() {
       })
       
       setSellQuantity("")
+      setSellPrice("")
       setSellingProduct(null)
       setIsSellDialogOpen(false)
       loadProducts()
@@ -489,11 +499,28 @@ export default function StockPage() {
                   required 
                 />
               </div>
-              {sellQuantity && sellingProduct && parseFloat(sellQuantity) > 0 && (
+              <div className="space-y-2">
+                <Label htmlFor="sell-price">Price per Gram ($)</Label>
+                <Input 
+                  id="sell-price" 
+                  type="number" 
+                  step="0.01" 
+                  value={sellPrice} 
+                  onChange={(e) => setSellPrice(e.target.value)} 
+                  placeholder="Enter selling price"
+                  required 
+                />
+                {sellingProduct && (
+                  <p className="text-xs text-gray-500 font-light">
+                    Default price: ${sellingProduct.price_per_gram.toFixed(2)}/g | Cost: ${sellingProduct.cost_per_gram.toFixed(2)}/g
+                  </p>
+                )}
+              </div>
+              {sellQuantity && sellPrice && sellingProduct && parseFloat(sellQuantity) > 0 && parseFloat(sellPrice) > 0 && (
                 <div className="p-4 bg-gray-50 rounded-lg space-y-2 border border-gray-200">
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-500 font-light">Sale Amount:</span>
-                    <span className="font-light text-gray-900">${(parseFloat(sellQuantity) * sellingProduct.price_per_gram).toFixed(2)}</span>
+                    <span className="font-light text-gray-900">${(parseFloat(sellQuantity) * parseFloat(sellPrice)).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-500 font-light">Cost:</span>
@@ -502,7 +529,7 @@ export default function StockPage() {
                   <div className="flex justify-between border-t border-gray-200 pt-2">
                     <span className="text-sm font-light">Profit:</span>
                     <span className="font-medium text-gray-900">
-                      ${(parseFloat(sellQuantity) * (sellingProduct.price_per_gram - sellingProduct.cost_per_gram)).toFixed(2)}
+                      ${(parseFloat(sellQuantity) * (parseFloat(sellPrice) - sellingProduct.cost_per_gram)).toFixed(2)}
                     </span>
                   </div>
                 </div>
